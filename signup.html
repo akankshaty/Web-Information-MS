@@ -28,44 +28,64 @@
       </div>
     </div>
     <div id="login_box" class ="col-md-6 col-sm-8 col-10">
-      <form novalidate>
-        <h1>Log in</h1>
+      <form id="signup_form">
+        <div class="form-group">
+          <h1>Sign up</h1>
+        </div>
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input type="name" class="form-control" id="name" placeholder="Student name or organization name" data-toggle="tooltip" data-placement="right" title="Please enter a valid name.">
+        </div>
         <div class="form-group">
           <label for="email">Email address</label>
-          <input type="email" class="form-control" id="email" placeholder="example@usc.edu" data-toggle="tooltip" data-placement="right" title="Please enter your email address.">
+          <input type="email" class="form-control" id="email" placeholder="example@usc.edu" data-toggle="tooltip" data-placement="right" title="Please enter a valid email address.">
         </div>
         <div class="form-group">
           <label for="password">Password</label>
-          <input type="password" class="form-control" id="password" placeholder="**********" data-toggle="tooltip" data-placement="right" title="Please enter your password.">
-        </div>
-        <div class="form-group" style="text-align: right;">
-          <button type="submit" class="btn btn-danger" id="btn_login">Log in</button>
+          <input type="password" class="form-control" id="password" placeholder="At least 8 characters with numbers and letters." data-toggle="tooltip" data-placement="right" title="Please enter a valid password with at least 8 characters of numbers and letters.">
         </div>
         <div class="form-group">
-          <div>
-            <a href="signup.html">Sign up</a> | <a href="">Forgot your password?</a>
-          </div>
+          <label for="password">Confirm Password</label>
+          <input type="password" class="form-control" id="confirm_password" placeholder="**********" data-toggle="tooltip" data-placement="right" title="Password doesn't match.">
+        </div>
+        <div class="form-group" style="text-align: center;">
+          <button type="submit" class="btn btn-danger" id="btn_signup">Sign up</button>
         </div>
       </form>
     </div>
   </body>
   <script>
     $(document).ready(function(){
-      $("#btn_login").click(function(){
+      $("#btn_signup").click(function(){
+        var name=$("#name").val();
         var email_addr=$("#email").val().toLowerCase();
         var email_re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         var password=$("#password").val();
+        var confirm_password=$("#confirm_password").val();
+        var password_re = /^(?=.*\d)(?=.*[a-zA-Z])[0-9a-zA-Z]{8,}$/;
+        if(name.replace(/[ ]/g,"")==""){
+          $('#name').tooltip({trigger: 'manual'}).tooltip('show');
+        }
+        else{
+          $('#name').tooltip('hide');
+        }
         if(email_re.test(email_addr)==false){
           $('#email').tooltip({trigger: 'manual'}).tooltip('show');
         }
         else{
           $('#email').tooltip('hide');
         }
-        if(password.replace(/[ ]/g,"")==""){
+        if(password_re.test(password)==false){
           $('#password').tooltip({trigger: 'manual'}).tooltip('show');
         }
         else{
           $('#password').tooltip('hide');
+        }
+        if(password!=confirm_password){
+          $('#confirm_password').tooltip({trigger: 'manual'}).tooltip('show');
+        }
+        else{
+          $('#confirm_password').tooltip('hide');
         }
         return false;
       });
