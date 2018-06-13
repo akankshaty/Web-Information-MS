@@ -1,0 +1,29 @@
+body {
+  background-color: rgb(190,190,190);
+}
+.banner {
+  background-color: rgb(255,205,0);
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  
+}
+.banner img {
+  width: 300px;
+  height: 105px;
+}
+.banner p{
+  font-weight: bold;
+  color: rgb(164,36,59);
+  padding: 0px 0px 20px 30px;
+}
+#login_box {
+  background-color: white;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  margin: auto;
+  margin-top: 60px;
+}
+#login_box form {
+  padding: 50px;
+}
+#btn_login {
+  margin: auto;
+}
