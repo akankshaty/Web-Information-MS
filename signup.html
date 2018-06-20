@@ -1,14 +1,15 @@
 <html>
   <head>
     <title>CSCI-590 Login</title>
-		<meta charset="UTF-8">
+	<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="./css/main.css" />
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+    <script src="js/signup.js"></script>
   </head>
   <body>
     <div class="banner">
@@ -28,7 +29,7 @@
       </div>
     </div>
     <div id="login_box" class ="col-md-6 col-sm-8 col-10">
-      <form id="signup_form">
+      <form novalidate id="signup_form">
         <div class="form-group">
           <h1>Sign up</h1>
         </div>
@@ -54,41 +55,4 @@
       </form>
     </div>
   </body>
-  <script>
-    $(document).ready(function(){
-      $("#btn_signup").click(function(){
-        var name=$("#name").val();
-        var email_addr=$("#email").val().toLowerCase();
-        var email_re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        var password=$("#password").val();
-        var confirm_password=$("#confirm_password").val();
-        var password_re = /^(?=.*\d)(?=.*[a-zA-Z])[0-9a-zA-Z]{8,}$/;
-        if(name.replace(/[ ]/g,"")==""){
-          $('#name').tooltip({trigger: 'manual'}).tooltip('show');
-        }
-        else{
-          $('#name').tooltip('hide');
-        }
-        if(email_re.test(email_addr)==false){
-          $('#email').tooltip({trigger: 'manual'}).tooltip('show');
-        }
-        else{
-          $('#email').tooltip('hide');
-        }
-        if(password_re.test(password)==false){
-          $('#password').tooltip({trigger: 'manual'}).tooltip('show');
-        }
-        else{
-          $('#password').tooltip('hide');
-        }
-        if(password!=confirm_password){
-          $('#confirm_password').tooltip({trigger: 'manual'}).tooltip('show');
-        }
-        else{
-          $('#confirm_password').tooltip('hide');
-        }
-        return false;
-      });
-    });
-  </script>
 </html>
