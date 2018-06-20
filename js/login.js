@@ -10,7 +10,7 @@ $(document).ready( function(){
 
         $.ajax(
             {
-                url: "/WMIS/php/login.php",
+                url: "/php/login.php",
                 type: "POST",
                 data: {email:email, password:password},
                 success: function(msg) {
