@@ -12,7 +12,7 @@ $(document).ready(function(){
 
         $.ajax(
             {
-                url: "/WMIS/php/signup.php",
+                url: "/php/signup.php",
                 type: "POST",
                 data: {name: name, email: email, password: password},
                 success: function(msg) {
