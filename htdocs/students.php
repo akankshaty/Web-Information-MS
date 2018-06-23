@@ -1,0 +1,506 @@
+<?php 
+	session_start();
+	include('header.php');
+	include('auth.php');
+	if ($_SESSION['u_role'] != "Coordinator" AND $_SESSION['u_role'] != "Admin" AND $_SESSION['u_role'] != "Client") {
+		header("Location: index.php");
+	}
+?>
+<div class="main-content">
+	<h1>Students</h1>
+	<p>List of all the students signed up in this website.</p>
+	<form id="popup" method="POST" style="display:none;background-color: #fff;box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);border-radius:0 15px 0 0;width:auto;min-width:300px;margin:0;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); -webkit-transform: translate(-50%, -50%);">
+	<img src="images/red_cross_mark.png" id="close_popup" style="position:absolute;top:-3px;right:-3px;width:30px;cursor:pointer;"/>
+	<p style="margin:30px 20px 20px;">Student Name: <input type="text" style="padding:5px 10px;" id="student_name" name="student_name" value="" readonly /></p>
+	<p style="margin:20px;">Student Email: <input type="text" style="padding:5px 10px;" id="email" name="email" value="" readonly /></p>
+	
+	<p style="margin:20px;">Project Name: <select name="p_name"><?php 
+		$res = mysqli_query($conn,"SELECT * FROM client_projects WHERE client_email='".$_SESSION['u_name']."'");
+		while($row_loop = mysqli_fetch_assoc($res)) {
+			echo '<option value="'.$row_loop['project_name'].'">'.$row_loop['project_name'].'</option>';
+		}
+	?></select></p>
+	<p style="margin:20px;">Project Role: <select name="p_role"><?php 
+		$res = mysqli_query($conn,"SELECT * FROM project_roles");
+		while($row_loop = mysqli_fetch_assoc($res)) {
+			echo '<option value="'.$row_loop['role_name'].'">'.$row_loop['role_name'].'</option>';
+		}
+	?></select></p>
+	<div class="error" style="display:none;"><p id="error_txt"></p></div>
+	<p style="margin:20px;text-align: center;"><input type="submit" name="send_offer_letter" value="Send Offer Letter" /></p>
+	</form>
+	<?php 
+
+		if(isset($_POST['send_offer_letter'])) {
+			$res = mysqli_query($conn,"SELECT * FROM vacancies WHERE project_name='".$_POST['p_name']."' AND role_name='".$_POST['p_role']."'");
+			$row = mysqli_fetch_assoc($res);
+			$total_seats = $row['total_seats'];
+			$role_limit_reached = $row['offer_letters_sent']; // Get the number of offer letters sent for this role on this project
+			$role_limit_reached = (($total_seats - $role_limit_reached) > 0)? 'false' : 'true';
+			
+			if(mysqli_num_rows($res) < 1) { // No vacancy was created for that role on that project.
+				echo '<div class="verified"><p id="error_txt" style="font-size: 16pt;">No such vacancies. Please add vacancies to that role before sending offer letters.</p></div>';
+			} else {
+				$all_query_ok = true; // Set to false if one of the command fails
+				// Count the number of offer letters sent for that project
+				$res = mysqli_query($conn,"SELECT SUM(offer_letters_sent) AS total_sent FROM vacancies WHERE project_name='".$_POST['p_name']."'");
+				$total_sent = intval(mysqli_fetch_assoc($res)['total_sent']); // Total offer letters sent
+				$res = mysqli_query($conn,"SELECT setting_value FROM settings_option WHERE setting_name='Offer Letters Limit'");
+				$letter_limit = intval(mysqli_fetch_assoc($res)['setting_value']); // Limit on # of offer letters that can be sent
+				$res = mysqli_query($conn,"SELECT setting_value FROM settings_option WHERE setting_name='Accepting Offer Letter Deadline'");
+				$offer_acceptance_deadline = mysqli_fetch_assoc($res)['setting_value']; // Deadline for students to accept offer letters
+				$offer_acceptance_deadline = date("l jS, F Y h:i:s A",$offer_acceptance_deadline); // Formatted deadline with correct date and time format
+				$res = mysqli_query($conn,"SELECT * FROM offer_letter_requests WHERE student_email='".$_POST['email']."' AND project_name='".$_POST['p_name']."'");
+
+				// Check if the number of offer letters sent is within the limit set by DR Coordinator and within the limit of what the vacancy allows.
+				if (($total_sent < $letter_limit) && (mysqli_num_rows($res) < 1) && ($role_limit_reached == 'false')) { 
+					
+					mysqli_autocommit($conn, FALSE); // Disable auto-commit. 
+					mysqli_query($conn,"UPDATE vacancies SET offer_letters_sent=offer_letters_sent+1 WHERE project_name='".$_POST['p_name']."' AND role_name='".$_POST['p_role']."'")? NULL : $all_query_ok = false;
+					mysqli_query($conn,"INSERT INTO offer_letter_requests (student_email,project_name,role_name,status) VALUES ('".$_POST['email']."','".$_POST['p_name']."','".$_POST['p_role']."','Pending')")? NULL : $all_query_ok = false;
+					$all_query_ok? mysqli_commit($conn) : mysqli_rollback($conn); // Rollback if one of the two commands fail
+					mysqli_autocommit($conn, TRUE); // Re-enable auto-commit. 				
+					
+					if ($all_query_ok) { 
+						// Change values of "Marked As" to "Offer Letter Sent" for that student
+						mysqli_autocommit($conn, FALSE); // Disable auto-commit. 
+						mysqli_query($conn,"DELETE FROM reviewed_students WHERE client_email='".$_SESSION['u_name']."' AND student_email='".$_POST['email']."'")? NULL : $all_query_ok = false;
+						mysqli_query($conn,"INSERT INTO reviewed_students (client_email,student_email,marked_as) VALUES ('".$_SESSION['u_name']."','".$_POST['email']."','Offer Letter Sent')")? NULL : $all_query_ok = false;
+						$all_query_ok? mysqli_commit($conn) : mysqli_rollback($conn); // Rollback if one of the two commands fail
+						mysqli_autocommit($conn, TRUE); // Re-enable auto-commit.
+						
+						
+						// Email for notifying student that they have received an offer letter.
+						$to = $_POST['email'];
+
+						// Subject
+						$subject = 'CSCI 590 DR Course '.$_POST['p_name'].' - Offer Letter';
+
+						// Message
+						$message = '
+						<html>
+						<head>
+						</head>
+						<body>
+							<p>Dear '.$_POST['student_name'].',<br />This message is to notify you that you have received an offer letter to join the '.$_POST['p_name'].' project as a '.$_POST['p_role'].'.<br />
+							Please note that the deadline to accept offer letters is '.$offer_acceptance_deadline.'. <br />So don\'t forget to accept an offer before this date. Thank you!
+							</p>
+						</body>
+						</html>
+						';
+
+						// To send HTML mail, the Content-type header must be set
+						$headers[] = 'MIME-Version: 1.0';
+						$headers[] = 'Content-type: text/html; charset=iso-8859-1';
+						$headers[] = 'From: '.$_SESSION['f_name'].' '.$_SESSION['l_name'].' <'.$_SESSION['u_name'].'>'; // Format of the variable ("From: First-Name Last-Name <example@example.com>")
+						// Mail it to student
+						mail($to, $subject, $message, implode("\r\n", $headers));
+						
+						$res_update = mysqli_query($conn,"SELECT SUM(offer_letters_sent) AS total_sent FROM vacancies WHERE project_name='".$_POST['p_name']."'");
+						$total_sent = intval(mysqli_fetch_assoc($res_update)['total_sent']); // Update total offer letters sent
+						$total = $letter_limit-$total_sent;
+						echo '<div class="verified"><p id="success_txt" style="font-size: 16pt;">Offer letter sent! You can send '.$total.' more offer letter(s) for '.$_POST['p_name'].' project.</p></div>';
+					}
+					
+				} else if(mysqli_num_rows($res) > 0) { // Offer letter already sent to the student for this project
+					echo '<div class="verified"><p id="error_txt" style="font-size: 16pt;">An offer letter had already been sent to this student for this project.</p></div>';
+				} else if (($role_limit_reached == 'true')) {
+					echo '<div class="verified"><p id="error_txt" style="font-size: 16pt;">Cannot send more offer letters than the number of vacancy you have for each role.</p></div>';
+				} else { // Maximum limit reached for sending offer letters to students for each project
+					echo '<div class="verified"><p id="error_txt" style="font-size: 16pt;">Cannot send any more offer letters for this project. Maximum limit reached!</p></div>';
+				}
+			}
+		}
+		if(isset($_POST['mark_change'])) { // Marked as value has changed for a student
+			// Delete the row from the marked student if it already exists
+			mysqli_query($conn,"DELETE FROM reviewed_students WHERE student_email='".$_POST['student_email']."'");
+			// Insert the updated information into table
+			mysqli_query($conn,"INSERT INTO reviewed_students (client_email,student_email,marked_as) VALUES ('".$_SESSION['u_name']."','".$_POST['student_email']."','".$_POST['mark_change']."')");
+		}
+		if(isset($_POST['units_change'])) { // # 'Units registered' has changed for a student
+			// Update information into login_info table
+			mysqli_query($conn,"UPDATE login_info SET n_units='".$_POST['units_change']."' WHERE username='".$_POST['student_email']."'");
+		}
+		if(isset($_POST['active_change'])) { // Status (Active/Withdrawn) has changed for a student
+			// Update information into login_info table
+			mysqli_query($conn,"UPDATE login_info SET status='".$_POST['active_change']."' WHERE username='".$_POST['student_email']."'");
+		}
+	?>
+	<form id="student_info" action="" method="POST">
+	<table class="entries">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Email Address</th>
+				<th>Survey?</th>
+				<th>Project?</th>
+				<?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>D-Clearance?</th>'; ?>
+				<?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th># Units</th>'; ?>
+				<?php if($_SESSION['u_role'] == "Client") echo '<th>Marked As?</th>'; ?>
+				<?php if($_SESSION['u_role'] == "Client") echo '<th>Send Offer Letter?</th>'; ?>
+				<th>Active/ Withdrawn?</th>
+				<?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>Delete?</th>'; ?>
+			</tr>
+			<?php 
+				include('auth.php');
+				if (isset($_GET['filterBy']) && $_GET['filterBy'] == "dclearance") {
+					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND d_clearance='No'");
+				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "survey") {
+					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND survey='No'");
+				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "not_enrolled") {
+					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND (project_enrolled IS NULL OR project_enrolled='')");
+				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "not_reviewed_list")  {
+					$students = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.username,li.survey,li.d_clearance,li.project_enrolled,li.status,rs.marked_as FROM login_info li LEFT JOIN reviewed_students rs ON li.username=rs.student_email WHERE li.role='Student' AND (rs.marked_as IS NULL OR rs.marked_as='' OR rs.marked_as='Unseen')");
+				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "contacted_list")  {
+					$students = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.username,li.survey,li.d_clearance,li.project_enrolled,li.status,rs.marked_as FROM login_info li LEFT JOIN reviewed_students rs ON li.username=rs.student_email WHERE li.role='Student' AND rs.marked_as='Contacted'");
+				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "offer_letter_sent_list")  {
+					$students = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.username,li.survey,li.d_clearance,li.project_enrolled,li.status,rs.marked_as FROM login_info li LEFT JOIN reviewed_students rs ON li.username=rs.student_email WHERE li.role='Student' AND rs.marked_as='Offer Letter Sent'");
+				} else {
+					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,status from login_info WHERE role='Student'");
+				}
+				while($row = mysqli_fetch_assoc($students)) {
+					echo '<tr>';
+						echo '<td>';
+						echo $row['f_name'].' '.$row['l_name'];
+						echo '</td>';
+						echo '<td>';
+						echo $row['username'];
+						echo '</td>';
+						echo '<td>';
+						if ($row['survey'] == "No") {
+							echo "Not Filled";
+						} else {
+							echo '<a href="survey.php?student='.$row['username'].'" target="_blank">View</a>';
+						}
+						echo '</td>';
+						
+						
+						echo '<td>';
+						if (($_SESSION['u_role'] == "Admin") OR ($_SESSION['u_role'] == "Coordinator")) {
+							$availability = empty($row['project_enrolled'])? '<p class="font_red">Not Enrolled</p>' : $row['project_enrolled'];
+							echo $availability;
+						} else if ($_SESSION['u_role'] == "Client") {
+							$availability = empty($row['project_enrolled'])? '<p class="font_bold font_green">Not Enrolled</p>' : '<p class="font_bold font_red">Enrolled</p>';
+							echo $availability;
+						}
+						echo '</td>';
+						
+						
+						if($_SESSION['u_role'] == "Client") {
+						echo '<td>';
+							$res = mysqli_query($conn,"SELECT * FROM reviewed_students WHERE client_email='".$_SESSION['u_name']."' AND student_email='".$row['username']."'");
+							$disabled = '';
+							if((mysqli_num_rows($res) > 0)) {
+								$marked_as = mysqli_fetch_assoc($res)['marked_as'];
+								$marked_as = empty($marked_as)? 'Unseen' : $marked_as;
+							} else if(mysqli_num_rows($res) < 1) {
+								$marked_as = 'Unseen';
+							}
+							if($marked_as == "Offer Letter Sent") {
+								$disabled = 'disabled';
+							}
+							echo '<select name="mark" class="mark-*'.$row['username'].'" '.$disabled.'>';
+								if($marked_as == "Unseen") {
+									echo '<option value="unseen" selected>Unseen</option>';
+									echo '<option value="seen">Seen</option>';
+									echo '<option value="contacted">Contacted</option>';
+								} else if ($marked_as == "Seen") {
+									echo '<option value="unseen">Unseen</option>';
+									echo '<option value="seen" selected>Seen</option>';
+									echo '<option value="contacted">Contacted</option>';
+								} else if ($marked_as == "Contacted") {
+									echo '<option value="unseen">Unseen</option>';
+									echo '<option value="seen">Seen</option>';
+									echo '<option value="contacted" selected>Contacted</option>';
+								} else if ($marked_as == "Offer Letter Sent") {
+									echo '<option value="unseen">Unseen</option>';
+									echo '<option value="seen">Seen</option>';
+									echo '<option value="contacted">Contacted</option>';
+									echo '<option value="offer_letter_sent" selected>Offer Letter Sent</option>';
+								} else {
+									echo '<option value="unseen" selected>Unseen</option>';
+									echo '<option value="seen">Seen</option>';
+									echo '<option value="contacted">Contacted</option>';
+								}	
+									
+							echo '</select>';
+							echo '<img src="images/green_check_mark.png" class="mark-*'.$row['username'].'" style="display:none;width:12px;margin:4px 0 0 4px;"/>';
+						echo '</td>';
+
+							if (empty($row['project_enrolled']) && ($row['status'] != "Withdrawn")) {
+								echo '<td>';
+								echo '<img src="images/offer_letter.png" id="offer-*'.str_replace(' ','_',$row['f_name']).'-*'.str_replace(' ','_',$row['l_name']).'-*'.$row['username'].'" class="offer" style="width: 30px;cursor: pointer;" />';
+								echo '</td>';
+							} else if (!empty($row['project_enrolled'])) {
+								echo '<td>';
+								echo '<img src="images/offer_letter.png" title="Student is already enrolled in a project!" style="width:30px;filter:grayscale(100%);" />';
+								echo '</td>';								
+							} else {
+								echo '<td>';
+								echo '<img src="images/offer_letter.png" title="Student has withdrawn from this course!" style="width:30px;filter:grayscale(100%);" />';
+								echo '</td>';										
+							}
+							if ($row['status'] == "Withdrawn") {
+								echo '<td>';
+								echo 'Withdrawn';
+								echo '</td>';
+							} else {
+								echo '<td>';
+								echo 'Active';
+								echo '</td>';								
+							}
+						}
+						if ($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") {
+							echo '<td>';
+							echo '<label class="switch">';
+								if ($row['d_clearance'] == "Yes") {
+									echo '<input type="checkbox" id="'.$row['username'].'" checked>';
+								} else {
+									echo '<input type="checkbox" id="'.$row['username'].'">';
+								}
+								echo '<span class="slider round"></span>';
+							echo '</label>';
+							echo '</td>';
+							echo '<td>';
+							echo '<select name="units" class="units-*'.$row['username'].'" style="padding:5px 10px;margin:25px 5px;border-radius:5px;" >';
+								if($row['n_units'] == "1") {
+									echo '<option value="select">Select Units</option>';
+									echo '<option value="1" selected>1 unit</option>';
+									echo '<option value="2">2 units</option>';
+									echo '<option value="3">3 units</option>';
+									echo '<option value="4+">4+ units</option>';
+									echo '<option value="intern">Unpaid Intern</option>';
+								} else if($row['n_units'] == "2") {
+									echo '<option value="select">Select Units</option>';
+									echo '<option value="1">1 unit</option>';
+									echo '<option value="2" selected>2 units</option>';
+									echo '<option value="3">3 units</option>';
+									echo '<option value="4+">4+ units</option>';
+									echo '<option value="intern">Unpaid Intern</option>';
+								} else if($row['n_units'] == "3") {
+									echo '<option value="select">Select Units</option>';
+									echo '<option value="1">1 unit</option>';
+									echo '<option value="2">2 units</option>';
+									echo '<option value="3" selected>3 units</option>';
+									echo '<option value="4+">4+ units</option>';
+									echo '<option value="intern">Unpaid Intern</option>';
+								} else if($row['n_units'] == "4+") {
+									echo '<option value="select">Select Units</option>';
+									echo '<option value="1">1 unit</option>';
+									echo '<option value="2">2 units</option>';
+									echo '<option value="3">3 units</option>';
+									echo '<option value="4+" selected>4+ units</option>';
+									echo '<option value="intern">Unpaid Intern</option>';
+								} else if($row['n_units'] == "intern") {
+									echo '<option value="select">Select Units</option>';
+									echo '<option value="1">1 unit</option>';
+									echo '<option value="2">2 units</option>';
+									echo '<option value="3">3 units</option>';
+									echo '<option value="4+">4+ units</option>';
+									echo '<option value="intern" selected>Unpaid Intern</option>';
+								} else {
+									echo '<option value="select">Select Units</option>';
+									echo '<option value="1">1 unit</option>';
+									echo '<option value="2">2 units</option>';
+									echo '<option value="3">3 units</option>';
+									echo '<option value="4+">4+ units</option>';
+									echo '<option value="intern">Unpaid Intern</option>';
+								}
+							echo '</select>';
+							echo '<img src="images/green_check_mark.png" class="units-*'.$row['username'].'" style="display:none;width:15px;margin:14px 0 0 4px;"/>';
+							echo '</td>';
+							echo '<td>';
+							echo '<select name="active" class="active-*'.$row['username'].'" style="padding:5px 10px;margin:25px 5px;border-radius:5px;" >';
+								if($row['status'] == "Withdrawn") {
+									echo '<option value="active">Active</option>';
+									echo '<option value="withdrawn" selected>Withdrawn</option>';
+								} else {
+									echo '<option value="active" selected>Active</option>';
+									echo '<option value="withdrawn">Withdrawn</option>';
+								}	
+							echo '</select>';
+							echo '<img src="images/green_check_mark.png" class="active-*'.$row['username'].'" style="display:none;width:15px;margin:14px 0 0 4px;"/>';
+							echo '</td>';
+
+							echo '<td>';
+							echo '<img src="images/delete_cross_mark.png" id="delete-'.$row['username'].'" class="delete" style="width:30px;cursor:pointer;" />';
+							echo '</td>';
+						}
+					echo '</tr>';
+				}
+				if (mysqli_num_rows($students) < 1) {
+					echo '<tr>';
+						echo '<td colspan="10">';
+						echo 'No results to show.';
+						echo '</td>';
+					echo '</tr>';
+				}
+			?>
+		</thead>
+	</table>
+	<p>See students <?php if($_SESSION['u_role'] == 'Client') {echo 'whom';} else {echo 'who';} ?>: 
+	<select name="filter_student" onchange="updateFilter(this.value);">
+			<option value="all">Show All Students</option>
+			<option class="coords_and_admin" value="dclearance" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "dclearance") echo 'selected'; } ?> >Needs D-Clearance</option>
+			<option class="coords" value="survey" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "survey") echo 'selected'; } ?> >Haven't filled out survey</option>
+			<option class="coords" value="not_enrolled" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "not_enrolled") echo 'selected'; } ?> >Not enrolled in any project</option>
+			<option class="client" value="not_reviewed_list" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "not_reviewed_list") echo 'selected'; } ?> >I haven't reviewed</option>
+			<option class="client" value="contacted_list" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "contacted_list") echo 'selected'; } ?> >I have contacted</option>
+			<option class="client" value="offer_letter_sent_list" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "offer_letter_sent_list") echo 'selected'; } ?> >I sent offer letters</option>
+	
+	</select></p>
+	</form>
+</div><br />
+<script>
+<?php 
+	echo 'var role ="'.$_SESSION['u_role'].'";';
+?>
+if (role != "Coordinator") {
+	$(".coords").hide();
+} 
+if (role != "Client") {
+	$(".client").hide();
+} 
+if (role != "Admin") {
+	$(".admin").hide();
+} 
+if ((role != "Admin") && role != "Coordinator") {
+	$(".coords_and_admin").hide();
+}
+$("#popup").hide();
+$(document).ready(function(){
+	$("input[type=checkbox]").click(function(event){
+		var s_id = event.target.id;
+		$.ajax({
+			url: "update_info.php",
+			type: "POST",
+			data: { "name": s_id },
+			success: function(response){
+			},
+			error: function(){
+			}
+		});
+	});
+	$(".delete").click(function(event){
+		if (confirm('Are you sure you want to delete this student?')) {
+			var s_id = event.target.id;
+			$.ajax({
+				url: "update_info.php",
+				type: "POST",
+				data: { "del_student": s_id },
+				success: function(response){
+				},
+				error: function(){
+				}
+			});
+			window.location.replace("students.php");
+		}
+	});
+	$(".offer").click(function(event){
+		var id_arr = $(this).attr("id").replace('_',' ').split("-*");
+		var f_name = id_arr[1];
+		var l_name = id_arr[2];
+		var email = id_arr[3];
+		$("input[id=student_name]").val(f_name+" "+l_name);
+		$("input[id=email]").val(email);
+		$("#popup").show();
+	});
+	$("input[name=send_offer_letter]").click(function(event){
+		if (confirm('Are you sure you want to send offer letter to this student?')) {
+			var s_id = event.target.id;
+			var email = $("input[id=email]").val();
+			$.ajax({
+				url: "students.php",
+				type: "POST",
+				data: { "send_offer_letter": s_id, "email": email},
+				success: function(response){
+					if(response == "Offer letter sent!") {
+						$("#popup").hide();
+						window.location.replace("students.php");
+					} else {
+						$("#error_txt").text(response);
+						$("#error_txt").show();
+					}
+				}
+			});
+			window.location.replace("students.php");
+		}
+	});
+	$("#close_popup").on("click",function(){
+		$("#popup").toggle();
+	});
+	$("a").click(function(e) {
+		location.reload();
+	});
+	$("select[name=mark]").change(function(e) {
+		var student_email = $(this).attr("class").replace('mark-*','');
+		var mark_value = $("."+$.escapeSelector($(this).attr("class"))+" option:selected").text();
+		$.ajax({
+			url: "students.php",
+			type: "POST",
+			data: { "mark_change": mark_value, "student_email": student_email},
+			success: function(response){
+				
+			}
+			
+		});
+		$("img[class="+$.escapeSelector($(this).attr("class"))+"]").show();
+	});
+	$("select[name=active]").change(function(e) {
+		var student_email = $(this).attr("class").replace('active-*','');
+		var active_value = $("."+$.escapeSelector($(this).attr("class"))+" option:selected").text();
+		$.ajax({
+			url: "students.php",
+			type: "POST",
+			data: { "active_change": active_value, "student_email": student_email},
+			success: function(response){
+				
+			}
+			
+		});
+		$("img[class="+$.escapeSelector($(this).attr("class"))+"]").show();
+	});
+	$("select[name=units]").change(function(e) {
+		var student_email = $(this).attr("class").replace('units-*','');
+		var units_value = $("."+$.escapeSelector($(this).attr("class"))+" option:selected").val();
+		$.ajax({
+			url: "students.php",
+			type: "POST",
+			data: { "units_change": units_value, "student_email": student_email},
+			success: function(response){
+
+			}
+			
+		});
+		$("img[class="+$.escapeSelector($(this).attr("class"))+"]").show();
+	});
+});
+function updateFilter(value) {
+	if (value == "dclearance") {
+		window.location.replace("students.php?filterBy=dclearance");
+		$("option[value=dclearance]").attr('selected', true);
+	} else if (value == "survey") {
+		window.location.replace("students.php?filterBy=survey");
+		$("option[value=survey]").attr('selected', true);
+	} else if (value == "not_enrolled") {
+		window.location.replace("students.php?filterBy=not_enrolled");
+		$("option[value=not_enrolled]").attr('selected', true);
+	} else if (value == "not_reviewed_list") {
+		window.location.replace("students.php?filterBy=not_reviewed_list");
+		$("option[value=not_reviewed_list]").attr('selected', true);
+	} else if (value == "contacted_list") {
+		window.location.replace("students.php?filterBy=contacted_list");
+		$("option[value=contacted_list]").attr('selected', true);
+	} else if (value == "offer_letter_sent_list") {
+		window.location.replace("students.php?filterBy=offer_letter_sent_list");
+		$("option[value=contacted_list]").attr('selected', true);
+	} else {
+		window.location.replace("students.php");
+		$("option[value=all]").attr('selected', true);		
+	}
+}
+</script>
+<?php
+	include('footer.php');
+	mysqli_close($conn);
+?>
