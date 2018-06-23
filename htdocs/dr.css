@@ -1,0 +1,483 @@
+html {
+	min-width: 1100px;
+	height: 100%;
+	background-color: #f0f0f0;
+}
+body {
+	display: block;
+	margin: 0;
+	min-width: 1000px;
+	min-height: 100%;
+	font-family: 'Montserrat';
+}
+.container {
+	margin: 50px auto;
+	min-width: 1000px;
+	min-height: 100%;
+	
+}
+.email {
+	background-image: url('images/email.png');
+	background-size: 20px;
+	background-repeat: no-repeat;
+	background-position: 5px center;
+}
+.entries {
+	font-family: Verdana, sans-serif;
+	width: 100%;
+	border-spacing:0;
+	border-collapse: collapse;
+	background-color: #fff;
+	text-align: center;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+.entries  th{
+	color: white;
+	text-transform: uppercase;
+	padding: 10px;
+}
+.entries  td{
+	padding: 10px;
+}
+.entries tr:nth-child(even){
+	background-color: #fff;
+}
+.entries tr:nth-child(odd){
+	background-color: #f0f0f0;
+}
+.entries tr:first-child {
+	background-color: #660000;
+}
+.error {
+	width: 200px;
+	padding: 1px 5px 1px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 14px;
+	color: red;
+	font-size: 10pt;
+	background-color: #f79e9e;
+	border-radius: 4px;
+}
+.font_bold {
+	margin: 7px 7px 7px 0;
+	font-weight: bold;
+}
+.font_green {
+	color: green;
+}
+.font_red {
+	color: red;
+}
+.registration #error_txt {
+	text-align: center;
+	padding: 20px;
+	color: red;
+	border-radius: 4px;
+	background-color: #f79e9e;
+}
+.registration #success_txt {
+	text-align: center;
+	padding: 20px;
+	color: #002200;
+	border-radius: 4px;
+	background-color: #41ad49;
+}
+#forgot_password_form  input[type=submit] {
+	width: 210px;
+}
+input[type=text],input[type=password] {
+	border: 1px solid gray;
+	border-radius: 4px;
+	padding: 8px 5px 8px 30px;
+}
+input[type=submit] {
+	background-image: linear-gradient(#AA0000, #330000); /* For Chrome but also works on firefox */
+	background-image: -webkit-linear-gradient(#AA0000, #330000); /* For Safari */
+	font-weight: bold;
+	color: white;
+	border: 1px solid gray;
+	border-radius: 4px;
+	font-size: 16pt;
+	padding: 10px 25px;
+}
+input[type=file] {
+	padding: 10px 0;
+}
+input[type=submit]:disabled {
+    background: #dddddd;
+	color: #555;
+	pointer-events: none;
+}
+input[type=submit]:hover {
+	cursor: pointer;
+	background-image: linear-gradient(#770000, #330000); /* For Chrome but also works on firefox */
+	background-image: -webkit-linear-gradient(#770000, #330000); /* For Safari */
+}
+input:checked + .slider {
+  background-color: #41ad49;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #41ad49;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+.login {
+	background-color: #fff;
+	display: block;
+	width: 350px;
+	height: auto;
+	margin: auto;
+	padding-bottom: 5px;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+	text-align: center;
+}
+#login_logo {
+	display: block;
+	margin: 0 0 14px 0;
+	padding: 3% 10%;
+	background-image: linear-gradient(#AA0000, #660000); /* For Chrome but also works on firefox */
+	background-image: -webkit-linear-gradient(#AA0000, #660000); /* For Safari */
+}
+#login_logo img {
+	position: relative;
+	width: 100%;
+}
+.main-content {
+	width: 80%;
+	margin-left: auto;
+	margin-right: auto;
+}
+.menu-bar {
+	display: inline-block;
+	font-size: 14pt;
+	font-weight: bold;
+	text-align: center;
+	margin: 0;
+	padding-left: 20px;
+	padding-right: 20px;
+	width: auto;
+	overflow: auto;
+	background-image: linear-gradient(#660000, #330000); /* For Chrome but also works on firefox */
+	background-image: -webkit-linear-gradient(#660000, #330000); /* For Safari */
+}
+.menu-bar:hover {
+	text-decoration: underline;
+	text-decoration-color: #fff; /* For Firefox only */
+	background-image: linear-gradient(#330000, #660000); /* For Chrome but also works on firefox */
+	background-image: -webkit-linear-gradient(#330000, #660000); /* For Safari */
+}
+.menu-bar a {
+	display: block;
+	padding: 10px;
+	color: white;
+	text-decoration: none;
+	
+}
+.nav {
+	display: block;
+	min-width: 700px;
+	width: 100%;
+	height: auto;
+	background-image: linear-gradient(#660000, #330000); /* For Chrome but also works on firefox */
+	background-image: -webkit-linear-gradient(#660000, #330000); /* For Safari */
+}
+.nav div:last-child{
+	position: relative;
+	float: right;
+}
+.nav-border {
+	border-left: 1px solid black;
+}
+.password {
+	background-image: url('images/password.png');
+	background-size: 20px;
+	background-repeat: no-repeat;
+	background-position: 5px center;
+}
+.registration {
+	background-color: #fff;
+	display: block;
+	width: 65%;
+	height: auto;
+	margin: 20px auto;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+	text-align: left;
+}
+.registration .error {
+	width: 265px;
+	padding: 15px;
+}
+.registration form {
+	padding: 5%;
+}
+.registration h1 {
+	margin-top: 0;
+	margin-bottom: 50px;
+	text-align:center;
+}
+.registration #login_logo {
+	text-align: center;
+}
+.registration #login_logo img {
+	width: 60%;
+}
+.registration p {
+	margin: 3px 0;
+	font-size: 14pt;
+	font-weight: bold;
+}
+.registration input[type=text],.registration input[type=password] {
+	border: 1px solid gray;
+	border-radius: 4px;
+	width: 275px;
+	padding: 10px;
+	margin-bottom: 20px;
+}
+.registration input[type=submit] {
+	margin-top: 25px;
+}
+.registration input[type=checkbox],.registration input[type=radio] {
+	margin: 10px;
+}
+#settings_form  p{
+	padding: 0 0 10px;
+	font-size: 10pt;
+}
+#settings_form  h1,#settings_form  h3 {
+	font-weight: black;
+}
+select.skills {
+	min-width: 250px;
+	width: auto;
+	min-height: 150px;
+	overflow: auto;
+	font-size: 14pt;
+	font-family: inherit;
+	text-align: center;
+}
+.skill_select {
+	position: relative;
+	display: inline-flex;
+	background-color: #660000;
+	border-radius: 3px;
+	margin: 10px 5px 5px 0;
+	padding: 10px 0 10px 10px;
+	color: white;
+}
+.skill_select img {
+	cursor: pointer;
+	width: 13px;
+	height: 13px;
+	float: right;
+	margin: 3px 8px;
+}
+#signin_form  input[type=submit] {
+	width: 210px;
+}
+#password_reset_form  input[type=submit] {
+	width: 210px;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cc0000;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+.summary {
+border: 1px solid black;
+border-collapse: collapse;
+margin: 10px;
+text-align: center;
+}
+.summary th,.summary td {
+	border: 1px solid black;
+	padding: 5px;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {display:none;}
+#upload_process{
+   z-index:100;
+   position:absolute;
+   visibility:hidden;
+   text-align:center;
+   width:400px;
+   margin:0px;
+   padding:0px;
+   background-color:#fff;
+   border:1px solid #ccc;
+}
+ 
+.verified #error_txt {
+	margin: 4% auto;
+	text-align: center;
+	font-size: 28pt;
+	padding: 50px;
+	width: 84%;
+	color: #550000;
+	border-radius: 10px;
+	background-color: #f79e9e;
+}
+.verified #error_txt img {
+	width: 30px;
+	margin: 0 5px;
+}
+.verified #success_txt {
+	margin: 4% auto;
+	text-align: center;
+	font-size: 28pt;
+	padding: 50px;
+	width: 84%;
+	color: #002200;
+	border-radius: 10px;
+	background-color: #41ad49;
+}
+.verified #success_txt img {
+	width: 30px;
+	margin: 0 5px;
+}
+.email_sent #success_txt {
+	width: 200px;
+	padding: 13px 5px 13px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 14px;
+	color: #002200;
+	font-size: 11pt;
+	background-color: #41ad49;
+	border-radius: 4px;
+}
+.email_sent #success_txt img {
+	width: 12px;
+	margin: 3px 3px 0;
+}
+.survey {
+	background-color: #fff;
+	display: block;
+	width: 65%;
+	height: auto;
+	margin: 20px auto;
+	padding: 6%;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+	text-align: left;
+}
+.survey #error_txt {
+	text-align: center;
+	padding: 25px;
+	color: red;
+	border-radius: 4px;
+	background-color: #f79e9e;
+	margin-bottom: 20px;
+}
+.survey .error_txt_cls {
+	text-align: center;
+	padding: 25px;
+	color: red;
+	border-radius: 4px;
+	background-color: #f79e9e;
+	margin-bottom: 20px;
+}
+.survey #success_txt {
+	text-align: center;
+	padding: 25px;
+	color: #002200;
+	border-radius: 4px;
+	background-color: #41ad49;
+	margin-bottom: 20px;
+}
+.survey h1 {
+	margin-top: 0;
+	margin-bottom: 50px;
+	text-align:center;
+}
+.survey p {
+	margin: 3px 0;
+	font-size: 14pt;
+	font-weight: bold;
+}
+.survey input[type=text],.survey input[type=password] {
+	border: 1px solid gray;
+	border-radius: 4px;
+	width: 275px;
+	padding: 10px;
+	margin-bottom: 20px;
+}
+.survey input[type=submit] {
+	margin-top: 25px;
+}
+.survey input[type=checkbox],.survey input[type=radio] {
+	margin: 10px;
+}
+.survey_deadline {
+	margin-bottom: 20px;
+	text-align: center;
+}
+.survey_deadline h1{
+	margin-bottom: 3px;
+}
+#survey_form {
+	margin-left: auto;
+	margin-right: auto;
+}
+#survey_form input[type=submit] {
+	position: relative;
+	left:40%;
+}
+#survey_form table {
+	width: 100%;
+}
+#survey_form th {
+	text-align: center;
+}
+.top_heading {
+	display: block;
+	width: 100%;
+	overflow: auto;
+	background-color: #ffce00;
+}
+#usc_logo {
+	width: auto;
+	height: 70px;
+	margin: 10px;
+	float: right;
+}
+.username {
+	background-image: url('images/user.png');
+	background-size: 20px;
+	background-repeat: no-repeat;
+	background-position: 5px center;
+}
