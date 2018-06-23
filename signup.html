@@ -1,7 +1,7 @@
 <html>
   <head>
-    <title>CSCI-590 Login</title>
-	<meta charset="UTF-8">
+    <title>CSCI-590 Sign up</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -28,7 +28,7 @@
         </div>
       </div>
     </div>
-    <div id="login_box" class ="col-md-6 col-sm-8 col-10">
+    <div class ="content_box col-md-8 col-sm-10 col-12">
       <form novalidate id="signup_form">
         <div class="form-group">
           <h1>Sign up</h1>
@@ -49,7 +49,176 @@
           <label for="password">Confirm Password</label>
           <input type="password" class="form-control" id="confirm_password" placeholder="**********" data-toggle="tooltip" data-placement="right" title="Password doesn't match.">
         </div>
-        <div class="form-group" style="text-align: center;">
+        <div class="form-group">
+          <label for="units">Number of Credits (Each credit equals to 5 hours of work per week)</label>
+          <div class="btn-group btn-group-toggle" data-toggle="buttons">
+            <label class="btn btn-light active">
+              <input type="radio" name="options" class="credit_option" id="credit_1" autocomplete="off" checked> 1
+            </label>
+            <label class="btn btn-light">
+              <input type="radio" name="options" class="credit_option" id="credit_2" autocomplete="off"> 2
+            </label>
+            <label class="btn btn-light">
+              <input type="radio" name="options" class="credit_option" id="credit_3" autocomplete="off"> 3
+            </label>
+            <label class="btn btn-light">
+              <input type="radio" name="options" class="credit_option" id="credit_4" autocomplete="off"> 4
+            </label>
+            <label class="btn btn-light">
+              <input type="radio" name="options" class="credit_option" id="credit_5" autocomplete="off"> Unpaid Intern
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="remote">Are you a remote student? (Live more than 25 miles from USC Main Campus)</label>
+          <div class="btn-group btn-group-toggle" data-toggle="buttons">
+            <label class="btn btn-light active">
+              <input type="radio" name="options" class="remote_option" id="remote_non" autocomplete="off" checked> No
+            </label>
+            <label class="btn btn-light">
+              <input type="radio" name="options" class="remote_option" id="remote" autocomplete="off"> Yes
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="skills">List of Skills (At least one year experience)</label>
+          <div class="btn-group-toggle" data-toggle="buttons">
+            <label class="btn btn-light" style="margin: 3px;">
+              <input type="checkbox" autocomplete="off"> Automated tests
+            </label>
+            <label class="btn btn-light" style="margin: 3px;">
+              <input type="checkbox" autocomplete="off"> C++
+            </label>
+            <label class="btn btn-light" style="margin: 3px;">
+              <input type="checkbox" autocomplete="off"> DB Development
+            </label>
+            <label class="btn btn-light" style="margin: 3px;">
+              <input type="checkbox" autocomplete="off"> Debugging
+            </label>
+            <label class="btn btn-light" style="margin: 3px;">
+              <input type="checkbox" autocomplete="off"> Java
+            </label>
+            <label class="btn btn-light" style="margin: 3px;">
+              <input type="checkbox" autocomplete="off"> Problem solving and analysis
+            </label>
+            <label class="btn btn-light" style="margin: 3px;">
+              <input type="checkbox" autocomplete="off"> Python
+            </label>
+            <label class="btn btn-light" style="margin: 3px;">
+              <input type="checkbox" autocomplete="off"> Quality Assurance/Testing
+            </label>
+            <label class="btn btn-light" style="margin: 3px;">
+              <input type="checkbox" autocomplete="off"> Scripts (DOS Batch, Bash)
+            </label>
+            <label class="btn btn-light" style="margin: 3px;">
+              <input type="checkbox" autocomplete="off"> Web Development
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="roles">Role preference (1 most preferred - 5 least preferred)</label>
+          <div class="form-group">
+            <div class="italic_inline">Developer</div>
+            <div class="btn-group btn-group-toggle" data-toggle="buttons" style="float:right;">
+              <label class="btn btn-light active">
+                <input type="radio" name="options" class="developer_preference" id="developer_preference_1" autocomplete="off" checked> 1
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="developer_preference" id="developer_preference_2" autocomplete="off"> 2
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="developer_preference" id="developer_preference_3" autocomplete="off"> 3
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="developer_preference" id="developer_preference_4" autocomplete="off"> 4
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="developer_preference" id="developer_preference_5" autocomplete="off"> 5
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="italic_inline">Debugger</div>
+            <div class="btn-group btn-group-toggle" data-toggle="buttons" style="float:right;">
+              <label class="btn btn-light active">
+                <input type="radio" name="options" class="debugger_preference" id="debugger_preference_1" autocomplete="off" checked> 1
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="debugger_preference" id="debugger_preference_2" autocomplete="off"> 2
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="debugger_preference" id="debugger_preference_3" autocomplete="off"> 3
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="debugger_preference" id="debugger_preference_4" autocomplete="off"> 4
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="debugger_preference" id="debugger_preference_5" autocomplete="off"> 5
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="italic_inline">Front End Developer</div>
+            <div class="btn-group btn-group-toggle" data-toggle="buttons" style="float:right;">
+              <label class="btn btn-light active">
+                <input type="radio" name="options" class="front_preference" id="front_preference_1" autocomplete="off" checked> 1
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="front_preference" id="front_preference_2" autocomplete="off"> 2
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="front_preference" id="front_preference_3" autocomplete="off"> 3
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="front_preference" id="front_preference_4" autocomplete="off"> 4
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="front_preference" id="front_preference_5" autocomplete="off"> 5
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="italic_inline">Tester/ QA Engineer</div>
+            <div class="btn-group btn-group-toggle" data-toggle="buttons" style="float:right;">
+              <label class="btn btn-light active">
+                <input type="radio" name="options" class="tester_preference" id="tester_preference_1" autocomplete="off" checked> 1
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="tester_preference" id="tester_preference_2" autocomplete="off"> 2
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="tester_preference" id="tester_preference_3" autocomplete="off"> 3
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="tester_preference" id="tester_preference_4" autocomplete="off"> 4
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="tester_preference" id="tester_preference_5" autocomplete="off"> 5
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="italic_inline">UI/ UX Engineers</div>
+            <div class="btn-group btn-group-toggle" data-toggle="buttons" style="float:right;">
+              <label class="btn btn-light active">
+                <input type="radio" name="options" class="ui_preference" id="ui_preference_1" autocomplete="off" checked> 1
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="ui_preference" id="ui_preference_2" autocomplete="off"> 2
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="ui_preference" id="ui_preference_3" autocomplete="off"> 3
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="ui_preference" id="ui_preference_4" autocomplete="off"> 4
+              </label>
+              <label class="btn btn-light">
+                <input type="radio" name="options" class="ui_preference" id="ui_preference_5" autocomplete="off"> 5
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="form-group" style="text-align: center;margin-top:40px;">
           <button type="submit" class="btn btn-danger" id="btn_signup">Sign up</button>
         </div>
       </form>

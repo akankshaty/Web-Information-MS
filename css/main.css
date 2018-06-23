@@ -27,15 +27,30 @@ body {
   color: rgb(164,36,59);
   padding: 0px 0px 20px 30px;
 }
-#login_box {
+.content_box {
   background-color: white;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   margin: auto;
   margin-top: 60px;
 }
-#login_box form {
-  padding: 50px;
+.content_box form {
+  padding: 20px;
 }
-#btn_login {
-  margin: auto;
+.credit_option {
+  width: 20%;
+}
+label {
+  display: block;
+}
+.btn-light{
+  border-color: #acacac;
+}
+.btn-light:not(:disabled):not(.disabled).active{
+  color: #212529;
+  background-color: #acacac;
+  border-color: #acacac;
+}
+.italic_inline{
+  font-style: italic;
+  display:inline-block;
 }
