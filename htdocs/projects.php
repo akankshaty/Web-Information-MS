@@ -231,7 +231,7 @@ $(document).ready(function() {
 		});
 
 	});
-	$(".delete_skill").on("click",function(e) {
+  $(document).on("click",".delete_skill",function(e){
 		var value = $(this).parent().text();
 		var proj_name = $(this).parent().parent().prev().attr("id").replace(/_/g,' ').replace(/\:/,'(').replace(/\./,')');
 		var s_id = $(this).parent().text();
