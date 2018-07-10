@@ -170,6 +170,15 @@ $(document).ready(function(){
 		var value = $("#other_students_only input[name=s_email]").val();
 		$("input[name=u_name]").val(value);
 	});
+	$(".usc_students_only input[name=s_usc_email]").on("change", function() {
+        	var value = $(".usc_students_only input[name=s_usc_email]").val();
+        	$("input[name=u_name]").val(value);
+    	});
+    	$("#other_students_only input[name=s_email]").on("change", function() {
+        	var value = $("#other_students_only input[name=s_email]").val();
+        	$("input[name=u_name]").val(value);
+    	});
+
 	$("#survey_form").submit(function(e) {
 		$("#error_txt").hide();
 		$("#success_txt").hide();
