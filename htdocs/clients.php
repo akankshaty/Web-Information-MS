@@ -217,6 +217,8 @@ $(document).ready(function() {
 				error: function(){
 				}
 			});
+		} else {
+			return false;
 		}
 	});
 });
