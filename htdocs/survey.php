@@ -165,7 +165,7 @@
 			$preference = $values_arr[1];
 			mysqli_query($conn,"INSERT INTO project_preferences (email,preference_order,project_name) VALUES ('".$_SESSION['u_name']."','".$preference."','".$project_name."')");
 		}
-		echo '<script>$(document).ready(function(){$("#last").after("<p id=\"success_txt\">Survey Submission Successful!</p>");});</script>';
+		echo '<script>$(document).ready(function(){$(".survey_deadline").after("<p id=\"success_txt\">Survey Submission Successful!</p>");});</script>';
 		mysqli_query($conn,"UPDATE login_info SET survey='Yes' WHERE username='".$_SESSION['u_name']."'");
 	}
 	// Check and update whether the resume is uploaded
@@ -184,6 +184,8 @@
 	<form id="survey_form" action="" method="POST" enctype="multipart/form-data">
 		<div class="survey_deadline"><h1>DR Course Survey Form</h1>
 		<div class="font_bold">Deadline to fill or change the survey:</div> <span class="font_red"><?php echo $deadline;?></span></div>
+        <p id="success_txt" style="display:none;">Survey Submission Successful!</p>		
+
 		<table>
 			<tr>
 				<td><div><p>First Name <span class="font_red">*</span></p><input type="text" name="f_name" value="<?php echo $f_name; ?>" placeholder="First Name" disabled /></div></td>
@@ -425,6 +427,7 @@
 		<p id="error_txt" style="display:none;"><span class="font_red">* </span>Please enter all required fields.</p>
 		<p id="success_txt" style="display:none;">Survey Submission Successful!</p>		
 		<!--<input style="margin-top:0;" type="submit" name="submit" <?php //if($deadline_passed || $_SESSION['u_role'] != "Student") {echo 'disabled';} ?> value="Submit" />-->
+		<input style="margin-top:0;" type="submit" name="submit" <?php if($deadline_passed || $_SESSION['u_role'] != "Student") {echo 'disabled';} ?> value="Submit" />
 	</form>
 </div>
 <script>
