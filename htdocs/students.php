@@ -133,12 +133,13 @@
 				<th>Name</th>
 				<th>Email Address</th>
 				<th>Survey?</th>
-				<th>Project?</th>
+				<?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>Project</th>'; ?>
+        <?php if($_SESSION['u_role'] == "Client") echo '<th>Availability</th>'; ?>
 				<?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>D-Clearance?</th>'; ?>
 				<?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th># Units</th>'; ?>
 				<?php if($_SESSION['u_role'] == "Client") echo '<th>Marked As?</th>'; ?>
 				<?php if($_SESSION['u_role'] == "Client") echo '<th>Send Offer Letter?</th>'; ?>
-				<th>Active/ Withdrawn?</th>
+        <?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>Active/Withdrawn</th>'; ?>
 				<?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>Delete?</th>'; ?>
 			</tr>
 			<?php 
@@ -180,7 +181,7 @@
 							$availability = empty($row['project_enrolled'])? '<p class="font_red">Not Enrolled</p>' : $row['project_enrolled'];
 							echo $availability;
 						} else if ($_SESSION['u_role'] == "Client") {
-							$availability = empty($row['project_enrolled'])? '<p class="font_bold font_green">Not Enrolled</p>' : '<p class="font_bold font_red">Enrolled</p>';
+							$availability = (empty($row['project_enrolled']) && ($row['status'] != "Withdrawn"))? '<p class="font_bold font_green">Yes</p>' : '<p class="font_bold font_red">No</p>';
 							echo $availability;
 						}
 						echo '</td>';
@@ -227,7 +228,12 @@
 							echo '<img src="images/green_check_mark.png" class="mark-*'.$row['username'].'" style="display:none;width:12px;margin:4px 0 0 4px;"/>';
 						echo '</td>';
 
-							if (empty($row['project_enrolled']) && ($row['status'] != "Withdrawn")) {
+              if ($marked_as == "Offer Letter Sent"){
+                echo '<td>';
+								echo '<img src="images/offer_letter_sent.png" title="Offer letter has been sent to this student!" style="width:30px;filter:grayscale(100%);" />';
+								echo '</td>';	
+              }
+							else if (empty($row['project_enrolled']) && ($row['status'] != "Withdrawn")) {
 								echo '<td>';
 								echo '<img src="images/offer_letter.png" id="offer-*'.str_replace(' ','_',$row['f_name']).'-*'.str_replace(' ','_',$row['l_name']).'-*'.$row['username'].'" class="offer" style="width: 30px;cursor: pointer;" />';
 								echo '</td>';
@@ -239,15 +245,6 @@
 								echo '<td>';
 								echo '<img src="images/offer_letter.png" title="Student has withdrawn from this course!" style="width:30px;filter:grayscale(100%);" />';
 								echo '</td>';										
-							}
-							if ($row['status'] == "Withdrawn") {
-								echo '<td>';
-								echo 'Withdrawn';
-								echo '</td>';
-							} else {
-								echo '<td>';
-								echo 'Active';
-								echo '</td>';								
 							}
 						}
 						if ($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") {
