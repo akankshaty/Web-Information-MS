@@ -92,8 +92,9 @@ input[type=text],input[type=password] {
 	padding: 8px 5px 8px 30px;
 }
 input[type=submit], input[type=button] {
-	background-image: linear-gradient(#AA0000, #330000); /* For Chrome but also works on firefox */
 	background-image: -webkit-linear-gradient(#AA0000, #330000); /* For Safari */
+	background-image: -moz-linear-gradient(#AA0000, #330000); /* For Mozilla */
+	background-image: linear-gradient(#AA0000, #330000); /* For Chrome but also works on firefox */
 	font-weight: bold;
 	color: white;
 	border: 1px solid gray;
