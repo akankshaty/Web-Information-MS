@@ -1,1 +1,17 @@
 
+Login "Wrong password" error:
+
+Since student_signup.php puts in hashed password into the login_info table instead of the text password, password '123' won't be stored as '123' but the hash of it will be stored. 
+
+In student_signup.php, password_hash($password, PASSWORD_BCRYPT) will save the hashed password of the password entered in the signup form into the database.
+In index.php, password_verify($password, $row['password']) will compare the password entered in the login form ($password) and the stored password from the 'password' column of login_info table ($row['password']).
+
+So update the table 'password' entries for successful login of existing verified users:
+
+1. Get the hashed password of existing passwords - go to any online php editor and type in these lines:
+$pass = '123'; # or whatever is the password entered in the table for that user. Assuming '123' is the password.
+echo password_hash($pass, PASSWORD_BCRYPT);
+
+2. Copy the output and update the login_info table to paste in the hashed password.
+
+3. Hit enter in the URL bar of the home page in case you have the website already running. Refresh button may not work. 
