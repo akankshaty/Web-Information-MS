@@ -53,11 +53,12 @@
 		if (isset($_POST['signin']) && isset($_POST['username'])) {
 			$username = mysqli_real_escape_string($conn, $_POST['username']);
 			$password = mysqli_real_escape_string($conn, $_POST['password']);
-			$result = mysqli_query($conn,"SELECT * FROM login_info WHERE username='".$username."' AND password=".$password);
+			//$result = mysqli_query($conn,"SELECT * FROM login_info WHERE username='".$username."' AND password=".$password);
 			$user_check = mysqli_query($conn,"SELECT * FROM login_info WHERE username='".$username."'");
 			$row = mysqli_fetch_assoc($user_check);
 			$verified_email = ($row['verified_email'] == "Yes")? true : false;
-			if ($verified_email && (mysqli_num_rows($result) > 0)) { // Login successful
+			$verified_password = password_verify($password,$row['password']);
+			if ($verified_email && $verified_password && (mysqli_num_rows($user_check) > 0)) { // Login successful
 				
 				$_SESSION['f_name'] = ucwords(strtolower($row['f_name']));
 				$_SESSION['l_name'] = ucwords(strtolower($row['l_name']));
@@ -66,7 +67,7 @@
 				$_SESSION['u_role'] = $row['role'];
 				header("Location: profile.php");
 				exit();
-			} else if ($verified_email && mysqli_num_rows($user_check) > 0) { // Username exist but password is incorrect
+			} else if ($verified_email && mysqli_num_rows($user_check) > 0 && !$verified_password) { // Username exist but password is incorrect
 				echo '<script>$(document).ready(function(){$("#error_txt").text("Wrong username(email) and/or password.");$(".error").show();});</script>';
 			} else if (!$verified_email && mysqli_num_rows($user_check) > 0) { // Email not verified and use exist
 				echo '<script>$(document).ready(function(){$("#error_txt").text("Please verify your email to sign-in.");$(".error").show();});</script>';
