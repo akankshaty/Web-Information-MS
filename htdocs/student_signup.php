@@ -60,7 +60,7 @@
 			<p id="success_txt">Registration Successful! A verification email has been sent to you!</p>
 
 			<input type="submit" name="signup" value="Sign Up" />
-			<input type="button" name="login" value="Go back to login" onclick="window.location = 'http://localhost/index.php';"/><br /><br />
+			<input type="button" name="login" value="Go back to login" onclick="window.location = 'index.php';"/><br /><br />
 		</form>
 		</div>
 	</div>
