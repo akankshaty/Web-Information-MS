@@ -202,13 +202,13 @@
 			</table>
 				<p>Are you a graduate or undergraduate student? <span class="font_red">*</span></p><br /><input type="radio" id="grad" name="student_level" disabled value="Graduate Student" <?php if($grad_student) {echo 'checked';} ?> />Graduate Student<br />
 				<input type="radio" id="undergrad" name="student_level" disabled value="Undergraduate Student" <?php if(!$grad_student) {echo 'checked';} ?> />Undergraduate Student<br /><br />
-				<p>Have you received D-Clearance for this course? <span class="font_red">*</span></p><br /><input type="radio" id="d_yes" name="d_clearance" <?php if($deadline_passed) {echo 'disabled';} ?> value="Yes" <?php if($d_clearance) {echo 'checked';} ?> />Yes<br />
-				<input type="radio" id="d_no" name="d_clearance" <?php if($deadline_passed) {echo 'disabled';} ?> value="No" <?php if(!$d_clearance) {echo 'checked';} ?> />No<br /><br />
+				<p>Have you received D-Clearance for this course? <span class="font_red">*</span></p><br /><input type="radio" id="d_yes" name="d_clearance" disabled value="Yes" <?php if($d_clearance) {echo 'checked';} ?> />Yes<br />
+				<input type="radio" id="d_no" name="d_clearance" disabled value="No" <?php if(!$d_clearance) {echo 'checked';} ?> />No<br /><br />
 		</div>
 		<div id="other_students_only"><p>Email Address <span class="font_red">*</span></p><input type="text" name="s_email" disabled placeholder="Email Address" value="<?php echo $email; ?>" /></div>
 		<p>Number of Units <span class="font_red">*</span></p>
 		Each unit equals to 5 hours of work per week (for graduate students)<br /><br />
-		<select id="units" name="n_units" <?php if($deadline_passed) {echo 'disabled';} ?> >
+		<select id="units" name="n_units" disabled>
 			<option value="select">Select Units</option>
 			<option class="usc_students_only" <?php if($n_units == "1") {echo 'selected';} ?> value="1">1 unit</option>
 			<option class="usc_students_only" <?php if($n_units == "2") {echo 'selected';} ?> value="2">2 units</option>
@@ -218,8 +218,8 @@
 		</select><br /><br />
 		<p>Are you a remote student? <span class="font_red">*</span></p>
 		i.e. Live more than 25 miles from USC Main Campus<br /><br />
-		<input type="radio" name="rem_student" <?php if($deadline_passed) {echo 'disabled';} ?> value="Yes" <?php if($remote) {echo 'checked';} ?> />Yes<br />
-		<input type="radio" name="rem_student" <?php if($deadline_passed) {echo 'disabled';} ?> value="No" <?php if(!$remote) {echo 'checked';} ?> />No<br />
+		<input type="radio" name="rem_student" disabled value="Yes" <?php if($remote) {echo 'checked';} ?> />Yes<br />
+		<input type="radio" name="rem_student" disabled value="No" <?php if(!$remote) {echo 'checked';} ?> />No<br />
 		<?php 
 			
 			// Skills (with experience) Section
@@ -240,11 +240,11 @@
 			}
 			while($row = mysqli_fetch_assoc($res)) {
 				$check_it = in_array($row['skill_name'], $skill_exp_arr)? 'checked' : '';
-				if($deadline_passed) {
+				//if($deadline_passed) {
 					echo '<input type="checkbox" name="skill_exp[]" value="'.$row['skill_name'].'" '.$check_it.' disabled /> '.$row['skill_name'].'<br />';
-				} else {
+				/*} else {
 					echo '<input type="checkbox" name="skill_exp[]" value="'.$row['skill_name'].'" '.$check_it.' /> '.$row['skill_name'].'<br />';
-				}
+				}*/
 			}
 			
 			// Skills (want to learn in this course) Section
@@ -265,11 +265,11 @@
 			}
 			while($row = mysqli_fetch_assoc($res)) {
 				$check_it = in_array($row['skill_name'], $skill_wanted_arr)? 'checked' : '';
-				if($deadline_passed) {
+				//if($deadline_passed) {
 					echo '<input type="checkbox" name="skill_wanted[]" value="'.$row['skill_name'].'" '.$check_it.' disabled /> '.$row['skill_name'].'<br />';
-				} else {
+				/*} else {
 					echo '<input type="checkbox" name="skill_wanted[]" value="'.$row['skill_name'].'" '.$check_it.' /> '.$row['skill_name'].'<br />';
-				}
+				}*/
 			}
 			
 			// Roles Section
@@ -283,7 +283,7 @@
 			$num_roles = mysqli_num_rows($num_res);
 			if ($num_roles > 0) { // If there at least one role is listed, if not then the roles section won't appear on survey
 					echo '<br /><p>Roles <span class="font_red">*</span></p>';
-					echo 'Please click in order of preference (1 most preferred - '.$num_roles.' least preferred)<br /><br />';
+					echo 'Viewed in order of preference (1 most preferred - '.$num_roles.' least preferred)<br /><br />';
 
 				echo '<table class="entries">';
 					echo '<tr>';
@@ -309,7 +309,7 @@
 							echo '<td>'.$row['role_name'].'</td>';
 							for($i=1;$i<=$num_roles;$i++) {
 								$check_it = ($pref == strval($i)? 'checked' : '');
-								echo '<td><input type="radio" id=u'.$count.$i.' class="role_name'.$count.'" name="role_pref'.$i.'" value="'.$row['role_name'].'-*'.$i.'" '.$check_it.' /></td>';
+								echo '<td><input type="radio" id=u'.$count.$i.' class="role_name'.$count.'" name="role_pref'.$i.'" value="'.$row['role_name'].'-*'.$i.'" '.$check_it.' disabled /></td>';
 							}
 							echo '</tr>';
 						}
@@ -330,7 +330,7 @@
 							echo '<tr>';
 							echo '<td>'.$row['role_name'].'</td>';
 							for($i=1;$i<=$num_roles;$i++) {
-								echo '<td><input type="radio" id=u'.$count.$i.' class="role_name'.$count.'" name="role_pref'.$i.'" value="'.$row['role_name'].'-*'.$i.'" /></td>';
+								echo '<td><input type="radio" id=u'.$count.$i.' class="role_name'.$count.'" name="role_pref'.$i.'" value="'.$row['role_name'].'-*'.$i.'" disabled /></td>';
 							}
 							echo '</tr>';
 						}
@@ -351,7 +351,7 @@
 			$num_projects = mysqli_num_rows($num_res);
 			if ($num_projects > 0) { // If there at least one project is listed, if not then the project section won't appear on survey
 					echo '<br /><p>Projects <span class="font_red">*</span></p>';
-					echo 'Please click in order of preference (1 most preferred - '.$num_projects.' least preferred)<br /><br />';
+					echo 'Viewed in order of preference (1 most preferred - '.$num_projects.' least preferred)<br /><br />';
 				
 				echo '<table class="entries">';
 					echo '<tr>';
@@ -378,7 +378,7 @@
 							$pref = $row['preference_order'];
 							for($i=1;$i<=$num_projects;$i++) {
 								$check_it = ($pref == strval($i)? 'checked' : '');
-								echo '<td><input type="radio" id=u'.$count.'_'.$i.' class="project_name'.$count.'" name="proj_pref'.$i.'" value="'.$row['project_name'].'-*'.$i.'" '.$check_it.' /></td>';
+								echo '<td><input type="radio" id=u'.$count.'_'.$i.' class="project_name'.$count.'" name="proj_pref'.$i.'" value="'.$row['project_name'].'-*'.$i.'" '.$check_it.' disabled /></td>';
 							}
 							echo '</tr>';
 						}
@@ -399,7 +399,7 @@
 							echo '<tr>';
 							echo '<td>'.$row['project_name'].'</td>';
 							for($i=1;$i<=$num_projects;$i++) {
-								echo '<td><input type="radio" id=u'.$count.'_'.$i.' class="project_name'.$count.'" name="proj_pref'.$i.'" value="'.$row['project_name'].'-*'.$i.'" /></td>';
+								echo '<td><input type="radio" id=u'.$count.'_'.$i.' class="project_name'.$count.'" name="proj_pref'.$i.'" value="'.$row['project_name'].'-*'.$i.'" disabled /></td>';
 							}
 							echo '</tr>';
 						}
@@ -412,7 +412,7 @@
 		?>
 		<br />
 		
-		<div id="last"><p>Resume Upload <span class="font_red">*</span></p>Select file to upload (only .pdf files are allowed): <br />
+		<div id="last"><p>Resume Uploaded <span class="font_red">*</span></p> <br />
 		<?php 
 		if (isset($_GET['student']) && $admin_or_coordinator_or_client) {
 			echo '<iframe src="resume_upload_iframe.php?student='.$_GET['student'].'" style="border:none;min-width:600px;min-height:160px;"></iframe>';			
@@ -424,7 +424,7 @@
 		</div>
 		<p id="error_txt" style="display:none;"><span class="font_red">* </span>Please enter all required fields.</p>
 		<p id="success_txt" style="display:none;">Survey Submission Successful!</p>		
-		<input style="margin-top:0;" type="submit" name="submit" <?php if($deadline_passed || $_SESSION['u_role'] != "Student") {echo 'disabled';} ?> value="Submit" />
+		<!--<input style="margin-top:0;" type="submit" name="submit" <?php //if($deadline_passed || $_SESSION['u_role'] != "Student") {echo 'disabled';} ?> value="Submit" />-->
 	</form>
 </div>
 <script>
