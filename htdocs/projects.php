@@ -213,6 +213,8 @@ $(document).ready(function() {
 				}
 			});
 			window.location.replace("projects.php");
+		} else {
+			return false;
 		}
 	});
 

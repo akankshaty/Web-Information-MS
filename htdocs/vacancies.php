@@ -18,12 +18,15 @@
 ?>
 <div class="main-content">
 	<?php 
+		$res = mysqli_query($conn,"SELECT project_enrolled FROM login_info WHERE username='".$_SESSION['u_name']."'");
+		$not_enrolled = empty(mysqli_fetch_assoc($res)['project_enrolled'])? true : false;
 		$res = mysqli_query($conn,"SELECT DISTINCT project_name FROM vacancies");
 		if ((mysqli_num_rows($res) < 1) && $_SESSION['u_role'] == 'Coordinator') {
 			echo '<p style="text-align: center;font-size: 16pt;margin:20%;color:#006600;font-weight: bold;"><img src="images/green_check_mark.png" style="width: 20px;" />All projects are being managed by at least one client.</p>';
 		} else if ((mysqli_num_rows($res) < 1) && $_SESSION['u_role'] == 'Client') {
 			echo '<p style="text-align: center;font-size: 16pt;margin:20%;color:#006600;font-weight: bold;"><img src="images/red_cross_mark.png" style="width: 20px;" />No projects have been assigned to you by DR Coordinator.</p>';
 		}
+
 		$deadline = mysqli_query($conn,"SELECT * FROM settings_option WHERE setting_name='Vacancy Application Deadline'");
 		if(mysqli_num_rows($deadline) > 0) {
 			$unformatted_deadline = mysqli_fetch_assoc($deadline)['setting_value'];
@@ -84,20 +87,22 @@
 						}
 						echo '</td>';
 							echo '<td>';
-
-							if (($row1['closed'] != "Yes") && ($row1['seats_filled'] < $row1['total_seats'])) {
-								$p_name = str_replace(' ','_',$row1['project_name']);
-								$r_name = str_replace(' ','_',$row1['role_name']);
-								if(!$deadline_passed) {
-									echo '<img src="images/apply.png" id="apply-*'.$p_name.'-*'.$r_name.'" class="apply" style="width: 90px;cursor: pointer;" />';
+							if ($not_enrolled) { // If the student is not enrolled in any project
+								if (($row1['closed'] != "Yes") && ($row1['seats_filled'] < $row1['total_seats'])) {
+									$p_name = str_replace(' ','_',$row1['project_name']);
+									$r_name = str_replace(' ','_',$row1['role_name']);
+									if(!$deadline_passed) {
+										echo '<img src="images/apply.png" id="apply-*'.$p_name.'-*'.$r_name.'" class="apply" style="width: 90px;cursor: pointer;" />';
+									} else {
+										echo '<p style="color:gray;">The deadline to apply for project vacancies is over!</p>';
+									}
 								} else {
-									echo '<p style="color:gray;">The deadline to apply for project vacancies is over!</p>';
+									echo 'Vacancy Closed!';
+									mysqli_query($conn,"UPDATE vacancies SET closed='Yes' WHERE project_name='".$row1['project_name']."' AND role_name='".$row1['role_name']."'");
 								}
 							} else {
-								echo 'Vacancy Closed!';
-								mysqli_query($conn,"UPDATE vacancies SET closed='Yes' WHERE project_name='".$row1['project_name']."' AND role_name='".$row1['role_name']."'");
+								echo 'You are already enrolled in a project!';
 							}
-							
 							echo '</td>';
 					echo '</tr>';
 				}

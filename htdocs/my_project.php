@@ -120,6 +120,8 @@ $(document).ready(function() {
 					window.location.replace("offers.php");
 				}
 			});
+		} else {
+			return false;
 		}
 	});
 	$("img[id^=decline]").click(function(e) {
@@ -133,6 +135,8 @@ $(document).ready(function() {
 					window.location.replace("offers.php");
 				}
 			});
+		} else {
+			return false;
 		}
 	});
 });

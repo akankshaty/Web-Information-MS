@@ -91,9 +91,10 @@ input[type=text],input[type=password] {
 	border-radius: 4px;
 	padding: 8px 5px 8px 30px;
 }
-input[type=submit] {
-	background-image: linear-gradient(#AA0000, #330000); /* For Chrome but also works on firefox */
+input[type=submit], input[type=button] {
 	background-image: -webkit-linear-gradient(#AA0000, #330000); /* For Safari */
+	background-image: -moz-linear-gradient(#AA0000, #330000); /* For Mozilla */
+	background-image: linear-gradient(#AA0000, #330000); /* For Chrome but also works on firefox */
 	font-weight: bold;
 	color: white;
 	border: 1px solid gray;
@@ -109,7 +110,7 @@ input[type=submit]:disabled {
 	color: #555;
 	pointer-events: none;
 }
-input[type=submit]:hover {
+input[type=submit]:hover, input[type=button]:hover {
 	cursor: pointer;
 	background-image: linear-gradient(#770000, #330000); /* For Chrome but also works on firefox */
 	background-image: -webkit-linear-gradient(#770000, #330000); /* For Safari */
