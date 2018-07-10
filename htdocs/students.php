@@ -391,6 +391,8 @@ $(document).ready(function(){
 				}
 			});
 			window.location.replace("students.php");
+		} else {
+			return false;
 		}
 	});
 	$(".offer").click(function(event){
@@ -421,6 +423,8 @@ $(document).ready(function(){
 				}
 			});
 			window.location.replace("students.php");
+		} else {
+			return false;
 		}
 	});
 	$("#close_popup").on("click",function(){
