@@ -427,7 +427,7 @@
 		<p id="error_txt" style="display:none;"><span class="font_red">* </span>Please enter all required fields.</p>
 		<p id="success_txt" style="display:none;">Survey Submission Successful!</p>		
 		<!--<input style="margin-top:0;" type="submit" name="submit" <?php //if($deadline_passed || $_SESSION['u_role'] != "Student") {echo 'disabled';} ?> value="Submit" />-->
-		<input style="margin-top:0;" type="submit" name="submit" <?php if($deadline_passed || $_SESSION['u_role'] != "Student") {echo 'disabled';} ?> value="Submit" />
+		<input style="margin-top:0;" type="submit" name="submit" <?php if($deadline_passed){echo 'disabled';} elseif($_SESSION['u_role'] != "Student") {echo 'hidden';} ?> value="Submit" />
 	</form>
 </div>
 <script>
