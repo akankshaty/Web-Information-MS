@@ -42,7 +42,7 @@ $url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HT
 	}
 ?>
 		<form action="" method="post" enctype="multipart/form-data" >
-		<input type="file" name="file_to_upload" id="file_to_upload" /><br />
+		<!--<input type="file" name="file_to_upload" id="file_to_upload" /><br />-->
 <?php
 if(isset($_POST['upload'])) {
 	$target_dir = "resumes/";
@@ -97,10 +97,23 @@ if(isset($_POST['upload'])) {
 		}
 	}
 }
+if(isset($_POST['remove'])) {
+	$confirm_msg = "Are you sure you want to delete uploaded resume?";
+
+	$script = "<script>";
+	$script .= "if(confirm('" . $confirm_msg . "'))";
+	$script .= "document.write('".'<p class="font_green" style="font-size:11pt;font-weight: normal;margin: 5px 0;">The file '. " has been removed.</p>" . "');";
+	$script .= "else";
+	$script .= "document.write('".'<p class="font_red" style="font-size:11pt;font-weight: normal;margin: 5px 0;">The file '. " is retained.</p>" . "');";
+	$script .= "</script>";
+
+	echo $script;
+}
 ?>
-		<input type="submit" id ="upload_file" style="float: left;width:auto; font-size: 12pt; padding: 5px; margin:10px 0;left:0;" name="upload" <?php if($deadline_passed || $_SESSION['u_role'] != "Student") {echo 'disabled';} ?> value="Upload" />
+		<input type="submit" id ="upload_file" style="float: left;width:auto; font-size: 12pt; padding: 5px; margin:10px 0;left:0;" name="upload" <?php if($deadline_passed || $_SESSION['u_role'] != "Student") {echo 'hidden';} ?> value="Upload" />
+		<!--<input type="submit" id="remove_file" style="float: left;width:auto; font-size: 12pt; padding: 5px; margin:10px 5px;left:0;" name="remove" <?php //if($deadline_passed || $_SESSION['u_role'] != "Student") {echo 'disabled';} ?> value="Remove" />-->
 		</form>
-		</div><br />
+		<!--</div>--><br />
 <?php
 	include('footer.php');
 	mysqli_close($conn);
