@@ -43,9 +43,7 @@
 					</tr>
 				</table>
 				<p>Are you a graduate or undergraduate student? <span class="font_red">*</span></p><br /><input type="radio" id="grad" name="student_level" value="Graduate Student" checked />Graduate Student<br />
-				<input type="radio" id="undergrad" name="student_level" value="Undergraduate Student" />Undergraduate Student<br /><br />
-				<p>Have you received D-Clearance for this course? <span class="font_red">*</span></p><br /><input type="radio" id="d_yes" name="d_clearance" value="Yes" />Yes<br />
-				<input type="radio" id="d_no" name="d_clearance" value="No" checked />No<br /><br />	
+				<input type="radio" id="undergrad" name="student_level" value="Undergraduate Student" />Undergraduate Student<br /><br />	
 			</div>
 			<div id="other_students_only"><p>Email Address <span class="font_red">*</span></p><input type="text" name="s_email" placeholder="Email Address" /></div>
 			<p>Username <span class="font_red">*</span></p><input type="text" name="u_name" disabled />
@@ -56,11 +54,14 @@
 					<td><div><p>Re-type Password <span class="font_red">*</span></p><input type="password" name="retype_password" placeholder="Re-type Password" /></div></td>
 				</tr>
 			</table>
-			<p id="error_txt"><span class="font_red">* </span>Please enter all required fields.</p>
-			<p id="success_txt">Registration Successful! A verification email has been sent to you!</p>
-
-			<input type="submit" name="signup" value="Sign Up" />
-			<input type="button" name="login" value="Go back to login" onclick="window.location = 'index.php';"/><br /><br />
+			<p id="error_txt" style="display:none;"><span class="font_red">* </span>Please enter all required fields.</p>
+			<p id="success_txt" style="display:none;">Registration Successful! A verification email has been sent to you!</p>
+			<table>
+			<tr>
+			<td style="text-align:center;"><input type="submit" style="left:0;bottom:0;" name="signup" value="Sign Up" /><br /><br />
+			<input type="button" name="login" value="Go back to login" onclick="window.location = 'index.php';"/></td>
+			</tr>
+			</table><br />
 		</form>
 		</div>
 	</div>
@@ -79,13 +80,12 @@
 			$s_id = isset($_POST['s_id'])? mysqli_real_escape_string($conn, trim($_POST['s_id'])) : NULL; // USC Student ID
 			$curr_student = mysqli_real_escape_string($conn, $_POST['curr_student']);
 			$student_level = isset($_POST['student_level'])? mysqli_real_escape_string($conn, $_POST['student_level']) : mysqli_real_escape_string($conn, "Non-USC student");
-			$d_clearance = isset($_POST['d_clearance'])? mysqli_real_escape_string($conn, $_POST['d_clearance']) : "No";
 			$sql = "SELECT * FROM login_info WHERE username='".$username."'";
 			$user_check = mysqli_query($conn,$sql);
 			if ($user_check && mysqli_num_rows($user_check) > 0) { // Username already exist
 				echo '<script>$(document).ready(function(){$("#error_txt").text("Username already exist. You have probably signed-up before.");$("#error_txt").show();});</script>';
 			} else { // Username does not exist, proceed to send email verification
-				$res = mysqli_query($conn, "INSERT INTO login_info (f_name,l_name,username,password,s_id,current_student,student_level,survey,d_clearance,status,verified_email,role) VALUES ('".$f_name."','".$l_name."','".$u_name."','".$hash_password."','".$s_id."','".$curr_student."','".$student_level."','No','".$d_clearance."','Active','No','Student')");
+				$res = mysqli_query($conn, "INSERT INTO login_info (f_name,l_name,username,password,s_id,current_student,student_level,survey,d_clearance,status,verified_email,role) VALUES ('".$f_name."','".$l_name."','".$u_name."','".$hash_password."','".$s_id."','".$curr_student."','".$student_level."','No','No','Active','No','Student')");
 				if ($res) {
 					echo '<script>$(document).ready(function(){$("#success_txt").text("Registration Successful! A verification email has been sent to you!");$("#success_txt").show();});</script>';
 				} else {
@@ -158,7 +158,6 @@ $(document).ready(function(){
 		$(".usc_students_only input[name=s_id]").val('');
 		$(".usc_students_only input[name=s_usc_email]").val('');
 		$(".usc_students_only input[name=student_level]").prop('checked', false);
-		$(".usc_students_only input[name=d_clearance]").prop('checked', false);
 		$("#other_students_only").show();
 		$("input[name=u_name]").val('');
 	});
