@@ -125,6 +125,18 @@
 			// Update information into login_info table
 			mysqli_query($conn,"UPDATE login_info SET status='".$_POST['active_change']."' WHERE username='".$_POST['student_email']."'");
 		}
+		if(isset($_POST['clear_list'])) { // Clear the list of students who changed # of units
+			// Delete all rows in the changed_units table
+			mysqli_query($conn,"TRUNCATE TABLE changed_units");
+		}
+		if(isset($_POST['download_file'])) { // Download the file if there is at least one student in the "Changed # Units" list
+			$query = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.d_clearance,cu.username,cu.from_units,cu.to_units,cu.timestamp FROM changed_units cu LEFT JOIN login_info li ON li.username=cu.username WHERE li.role='Student' AND li.status='Active'");
+			if(mysqli_num_rows($query) > 0) {
+				echo "true";
+			} else {
+				echo "false";
+			}
+		}
 	?>
 	<form id="student_info" action="" method="POST">
 	<table class="entries">
@@ -145,11 +157,11 @@
 			<?php 
 				include('auth.php');
 				if (isset($_GET['filterBy']) && $_GET['filterBy'] == "dclearance") {
-					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND d_clearance='No'");
+					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND d_clearance='No'");
 				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "survey") {
-					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND survey='No'");
+					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND survey='No'");
 				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "not_enrolled") {
-					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND (project_enrolled IS NULL OR project_enrolled='')");
+					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND (project_enrolled IS NULL OR project_enrolled='')");
 				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "not_reviewed_list")  {
 					$students = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.username,li.survey,li.d_clearance,li.project_enrolled,li.status,rs.marked_as FROM login_info li LEFT JOIN reviewed_students rs ON li.username=rs.student_email WHERE li.role='Student' AND (rs.marked_as IS NULL OR rs.marked_as='' OR rs.marked_as='Unseen')");
 				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "contacted_list")  {
@@ -347,6 +359,80 @@
 	
 	</select></p>
 	</form>
+	<br />
+	<?php 
+	if ($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") {
+		echo '<p>List of students who recently changed the registered number of units. (<span id="download_file" style="cursor: pointer; text-decoration: underline; color: blue;"><strong>Download this list</strong></span> | <span id="clear_list" style="cursor: pointer; text-decoration: underline; color: blue;"><strong>Clear this list</strong></span>)</p>
+	<table class="entries">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Email Address</th>';
+				if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>Changed From</th>';
+				if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>Changed To</th>';
+				if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>Timestamp</th>';
+		echo '</tr>';
+
+				
+		$students = mysqli_query($conn, "SELECT li.f_name,li.l_name,cu.username,cu.from_units,cu.to_units,cu.timestamp FROM changed_units cu LEFT JOIN login_info li ON li.username=cu.username WHERE li.role='Student' AND li.status='Active'");
+		if (mysqli_num_rows($students) > 0) {
+			while($row = mysqli_fetch_assoc($students)) {
+				echo '<tr>';
+					echo '<td>';
+					echo $row['f_name'].' '.$row['l_name'];
+					echo '</td>';
+					echo '<td>';
+					echo $row['username'];
+					echo '</td>';
+					
+
+						echo '<td>';
+							if($row['from_units'] == "1") {
+								echo '1 unit';
+							} else if($row['from_units'] == "2") {
+								echo '2 units';
+							} else if($row['from_units'] == "3") {
+								echo '3 units';
+							} else if($row['from_units'] == "4+") {
+								echo '4+ units';
+							} else if($row['from_units'] == "intern") {
+								echo 'Unpaid Intern';
+							} else {
+								echo '-';
+							}
+						echo '</td>';
+						echo '<td>';
+							if($row['to_units'] == "1") {
+								echo '1 unit';
+							} else if($row['to_units'] == "2") {
+								echo '2 units';
+							} else if($row['to_units'] == "3") {
+								echo '3 units';
+							} else if($row['to_units'] == "4+") {
+								echo '4+ units';
+							} else if($row['to_units'] == "intern") {
+								echo 'Unpaid Intern';
+							} else {
+								echo '-';
+							}
+						echo '</td>';
+						echo '<td>';
+							echo $row['timestamp'];
+						echo '</td>';
+			}
+				echo '</tr>';
+		} else {
+			echo '<tr>';
+				echo '<td colspan="10">';
+				echo 'No results to show.';
+				echo '</td>';
+			echo '</tr>';
+		}
+
+	echo '</thead>
+	</table>';
+	}
+			?>
 </div><br />
 <script>
 <?php 
@@ -474,6 +560,35 @@ $(document).ready(function(){
 			
 		});
 		$("img[class="+$.escapeSelector($(this).attr("class"))+"]").show();
+	});
+	$("#clear_list").click(function(e) {
+		if (confirm('Are you sure you want to clear the list of students who changed the # of units? This action cannot be undone.')) {
+			$.ajax({
+				url: "students.php",
+				type: "POST",
+				data: { "clear_list": true },
+				success: function(response){
+
+				}
+			});
+			window.location.replace("students.php");
+		} else {
+			return false;
+		}
+	});
+	$("#download_file").click(function(e) {
+		$.ajax({
+			url: "download_csv.php",
+			type: "POST",
+			data: { "download_file": true },
+			success: function(response){
+				if (response.substring(0,4) == "true") {
+					window.location.replace("download_csv.php");
+				} else {
+					alert("Downloading failed! There are no students in this list.");
+				}
+			}
+		});
 	});
 });
 function updateFilter(value) {

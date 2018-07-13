@@ -74,34 +74,40 @@
 		$res = mysqli_query($conn,"SELECT n_units FROM login_info WHERE username='".$_SESSION['u_name']."'");
 		$units = mysqli_fetch_assoc($res)['n_units'];
 		if (!empty($units) && ($units != $_POST['n_units'])) { // Send email to admin in case a student changes the registered number of units
+			$res = mysqli_query($conn,"SELECT * FROM changed_units WHERE username='".$_SESSION['u_name']."'");
+			if(mysqli_num_rows($res) > 0) {
+				mysqli_query($conn,"UPDATE changed_units SET from_units='".$units."',to_units='".$_POST['n_units']."',timestamp=CURRENT_TIMESTAMP WHERE username='".$_SESSION['u_name']."'");
+			} else {
+				mysqli_query($conn,"INSERT INTO changed_units (username,from_units,to_units) VALUES ('".$_SESSION['u_name']."','".$units."','".$_POST['n_units']."')");
+			}
 			$res = mysqli_query($conn,"SELECT * FROM login_info WHERE role='Admin'");
 			$row = mysqli_fetch_assoc($res);
-			$admin_email = $row['username']; // Get the email address of the admin
-			$admin_f_name = $row['f_name'];
-			$admin_l_name = $row['l_name'];
-			// Send email to admin regarding change in the number of registered units.
-			$to = $admin_email;
+			// $admin_email = $row['username']; // Get the email address of the admin
+			// $admin_f_name = $row['f_name'];
+			// $admin_l_name = $row['l_name'];
+			// // Send email to admin regarding change in the number of registered units.
+			// $to = $admin_email;
 
-			// Subject
-			$subject = 'CSCI 590 DR Course - Change in a student\'s registered # of units';
+			// // Subject
+			// $subject = 'CSCI 590 DR Course - Change in a student\'s registered # of units';
 
-			// Message
-			$message = '
-			<html>
-			<head>
-			</head>
-			<body>
-				<p>Dear '.$admin_f_name.' '.$admin_l_name.',<br />This message is to notify you that the student '.$f_name.' '.$l_name.' has changed the number of units registered for this course. <br />The email address of the student is as follows: '.$email.'</p><br />
-			</body>
-			</html>
-			';
+			// // Message
+			// $message = '
+			// <html>
+			// <head>
+			// </head>
+			// <body>
+				// <p>Dear '.$admin_f_name.' '.$admin_l_name.',<br />This message is to notify you that the student '.$f_name.' '.$l_name.' has changed the number of units registered for this course. <br />The email address of the student is as follows: '.$email.'</p><br />
+			// </body>
+			// </html>
+			// ';
 
-			// To send HTML mail, the Content-type header must be set
-			$headers[] = 'MIME-Version: 1.0';
-			$headers[] = 'Content-type: text/html; charset=iso-8859-1';
-			$headers[] = 'From: <no-reply@'.$url.'>'; // Format of the variable ("From: <no-reply@example.com>")
-			// Mail it to admin
-			mail($to, $subject, $message, implode("\r\n", $headers));
+			// // To send HTML mail, the Content-type header must be set
+			// $headers[] = 'MIME-Version: 1.0';
+			// $headers[] = 'Content-type: text/html; charset=iso-8859-1';
+			// $headers[] = 'From: <no-reply@'.$url.'>'; // Format of the variable ("From: <no-reply@example.com>")
+			// // Mail it to admin
+			// mail($to, $subject, $message, implode("\r\n", $headers));
 		}
 		// Update the user's survey form info on login_info db table
 		mysqli_query($conn,"UPDATE login_info SET n_units='".$_POST['n_units']."', d_clearance='".$_POST['d_clearance']."', remote='".$_POST['rem_student']."' WHERE username='".$_SESSION['u_name']."'");
@@ -198,19 +204,19 @@
 		<div class = "usc_students_only">
 			<table>
 				<tr>
-					<td><div><p>USC Student ID (XXXX-XX-XXXX) <span class="font_red">*</span></p><input type="text" name="s_id" disabled placeholder="USC Student ID" value="<?php echo $s_id; ?>" /></div></td>
+					<td class = "hidden_from_client" style="display: none;"><div><p>USC Student ID (XXXX-XX-XXXX) <span class="font_red">*</span></p><input type="text" name="s_id" disabled placeholder="USC Student ID" value="<?php echo $s_id; ?>" /></div></td>
 					<td><div><p>Student USC Email Address <span class="font_red">*</span></p><input type="text" name="s_usc_email" disabled placeholder="example@usc.edu" value="<?php echo $email; ?>" /></div></td>
 				</tr>
 			</table>
 				<p>Are you a graduate or undergraduate student? <span class="font_red">*</span></p><br /><input type="radio" id="grad" name="student_level" disabled value="Graduate Student" <?php if($grad_student) {echo 'checked';} ?> />Graduate Student<br />
 				<input type="radio" id="undergrad" name="student_level" disabled value="Undergraduate Student" <?php if(!$grad_student) {echo 'checked';} ?> />Undergraduate Student<br /><br />
-				<p>Have you received D-Clearance for this course? <span class="font_red">*</span></p><br /><input type="radio" id="d_yes" name="d_clearance" disabled value="Yes" <?php if($d_clearance) {echo 'checked';} ?> />Yes<br />
-				<input type="radio" id="d_no" name="d_clearance" disabled value="No" <?php if(!$d_clearance) {echo 'checked';} ?> />No<br /><br />
+				<p>Have you received D-Clearance for this course? <span class="font_red">*</span></p><br /><input type="radio" id="d_yes" name="d_clearance" <?php if($deadline_passed) {echo 'disabled';} ?> value="Yes" <?php if($d_clearance) {echo 'checked';} ?> />Yes<br />
+				<input type="radio" id="d_no" name="d_clearance" <?php if($deadline_passed OR $_SESSION['u_role'] != 'Student') {echo 'disabled';} ?> value="No" <?php if(!$d_clearance) {echo 'checked';} ?> />No<br /><br />
 		</div>
 		<div id="other_students_only"><p>Email Address <span class="font_red">*</span></p><input type="text" name="s_email" disabled placeholder="Email Address" value="<?php echo $email; ?>" /></div>
 		<p>Number of Units <span class="font_red">*</span></p>
 		Each unit equals to 5 hours of work per week (for graduate students)<br /><br />
-		<select id="units" name="n_units" disabled>
+		<select id="units" name="n_units" <?php if($deadline_passed OR $_SESSION['u_role'] != 'Student') {echo 'disabled';} ?>>
 			<option value="select">Select Units</option>
 			<option class="usc_students_only" <?php if($n_units == "1") {echo 'selected';} ?> value="1">1 unit</option>
 			<option class="usc_students_only" <?php if($n_units == "2") {echo 'selected';} ?> value="2">2 units</option>
@@ -220,8 +226,8 @@
 		</select><br /><br />
 		<p>Are you a remote student? <span class="font_red">*</span></p>
 		i.e. Live more than 25 miles from USC Main Campus<br /><br />
-		<input type="radio" name="rem_student" disabled value="Yes" <?php if($remote) {echo 'checked';} ?> />Yes<br />
-		<input type="radio" name="rem_student" disabled value="No" <?php if(!$remote) {echo 'checked';} ?> />No<br />
+		<input type="radio" name="rem_student" <?php if($deadline_passed OR $_SESSION['u_role'] != 'Student') {echo 'disabled';} ?> value="Yes" <?php if($remote) {echo 'checked';} ?> />Yes<br />
+		<input type="radio" name="rem_student" <?php if($deadline_passed OR $_SESSION['u_role'] != 'Student') {echo 'disabled';} ?> value="No" <?php if(!$remote) {echo 'checked';} ?> />No<br />
 		<?php 
 			
 			// Skills (with experience) Section
@@ -242,11 +248,11 @@
 			}
 			while($row = mysqli_fetch_assoc($res)) {
 				$check_it = in_array($row['skill_name'], $skill_exp_arr)? 'checked' : '';
-				//if($deadline_passed) {
+				if($deadline_passed OR $_SESSION['u_role'] != 'Student') {
 					echo '<input type="checkbox" name="skill_exp[]" value="'.$row['skill_name'].'" '.$check_it.' disabled /> '.$row['skill_name'].'<br />';
-				/*} else {
+				} else {
 					echo '<input type="checkbox" name="skill_exp[]" value="'.$row['skill_name'].'" '.$check_it.' /> '.$row['skill_name'].'<br />';
-				}*/
+				}
 			}
 			
 			// Skills (want to learn in this course) Section
@@ -267,11 +273,11 @@
 			}
 			while($row = mysqli_fetch_assoc($res)) {
 				$check_it = in_array($row['skill_name'], $skill_wanted_arr)? 'checked' : '';
-				//if($deadline_passed) {
+				if($deadline_passed OR $_SESSION['u_role'] != 'Student') {
 					echo '<input type="checkbox" name="skill_wanted[]" value="'.$row['skill_name'].'" '.$check_it.' disabled /> '.$row['skill_name'].'<br />';
-				/*} else {
+				} else {
 					echo '<input type="checkbox" name="skill_wanted[]" value="'.$row['skill_name'].'" '.$check_it.' /> '.$row['skill_name'].'<br />';
-				}*/
+				}
 			}
 			
 			// Roles Section
@@ -298,7 +304,7 @@
 					$count = 1;
 					while($row = mysqli_fetch_assoc($res)) {
 						$pref = $row['preference_order'];
-						if($deadline_passed) {
+						if($deadline_passed OR $_SESSION['u_role'] != 'Student') {
 							echo '<tr>';
 							echo '<td>'.$row['role_name'].'</td>';
 							for($i=1;$i<=$num_roles;$i++) {
@@ -311,7 +317,7 @@
 							echo '<td>'.$row['role_name'].'</td>';
 							for($i=1;$i<=$num_roles;$i++) {
 								$check_it = ($pref == strval($i)? 'checked' : '');
-								echo '<td><input type="radio" id=u'.$count.$i.' class="role_name'.$count.'" name="role_pref'.$i.'" value="'.$row['role_name'].'-*'.$i.'" '.$check_it.' disabled /></td>';
+								echo '<td><input type="radio" id=u'.$count.$i.' class="role_name'.$count.'" name="role_pref'.$i.'" value="'.$row['role_name'].'-*'.$i.'" '.$check_it.' /></td>';
 							}
 							echo '</tr>';
 						}
@@ -321,7 +327,7 @@
 					$empty_fields = mysqli_query($conn,"SELECT * FROM project_roles");
 					$count = 1;
 					while($row = mysqli_fetch_assoc($empty_fields)) {
-						if($deadline_passed) {
+						if($deadline_passed OR $_SESSION['u_role'] != 'Student') {
 							echo '<tr>';
 							echo '<td>'.$row['role_name'].'</td>';
 							for($i=1;$i<=$num_roles;$i++) {
@@ -332,7 +338,7 @@
 							echo '<tr>';
 							echo '<td>'.$row['role_name'].'</td>';
 							for($i=1;$i<=$num_roles;$i++) {
-								echo '<td><input type="radio" id=u'.$count.$i.' class="role_name'.$count.'" name="role_pref'.$i.'" value="'.$row['role_name'].'-*'.$i.'" disabled /></td>';
+								echo '<td><input type="radio" id=u'.$count.$i.' class="role_name'.$count.'" name="role_pref'.$i.'" value="'.$row['role_name'].'-*'.$i.'" /></td>';
 							}
 							echo '</tr>';
 						}
@@ -366,7 +372,7 @@
 					$count = 1;
 					while($row = mysqli_fetch_assoc($res)) {
 						$pref = $row['preference_order'];
-						if($deadline_passed) {
+						if($deadline_passed OR $_SESSION['u_role'] != 'Student') {
 							echo '<tr>';
 							echo '<td>'.$row['project_name'].'</td>';
 							for($i=1;$i<=$num_projects;$i++) {
@@ -380,7 +386,7 @@
 							$pref = $row['preference_order'];
 							for($i=1;$i<=$num_projects;$i++) {
 								$check_it = ($pref == strval($i)? 'checked' : '');
-								echo '<td><input type="radio" id=u'.$count.'_'.$i.' class="project_name'.$count.'" name="proj_pref'.$i.'" value="'.$row['project_name'].'-*'.$i.'" '.$check_it.' disabled /></td>';
+								echo '<td><input type="radio" id=u'.$count.'_'.$i.' class="project_name'.$count.'" name="proj_pref'.$i.'" value="'.$row['project_name'].'-*'.$i.'" '.$check_it.' /></td>';
 							}
 							echo '</tr>';
 						}
@@ -390,7 +396,7 @@
 					$empty_fields = mysqli_query($conn,"SELECT * FROM projects");
 					$count = 1;
 					while($row = mysqli_fetch_assoc($empty_fields)) {
-						if($deadline_passed) {
+						if($deadline_passed OR $_SESSION['u_role'] != 'Student') {
 							echo '<tr>';
 							echo '<td>'.$row['project_name'].'</td>';
 							for($i=1;$i<=$num_projects;$i++) {
@@ -401,7 +407,7 @@
 							echo '<tr>';
 							echo '<td>'.$row['project_name'].'</td>';
 							for($i=1;$i<=$num_projects;$i++) {
-								echo '<td><input type="radio" id=u'.$count.'_'.$i.' class="project_name'.$count.'" name="proj_pref'.$i.'" value="'.$row['project_name'].'-*'.$i.'" disabled /></td>';
+								echo '<td><input type="radio" id=u'.$count.'_'.$i.' class="project_name'.$count.'" name="proj_pref'.$i.'" value="'.$row['project_name'].'-*'.$i.'" /></td>';
 							}
 							echo '</tr>';
 						}
@@ -441,10 +447,18 @@ $("#other_students_only").hide();
 	} else {
 		$_SESSION['no_resume'] = 'false';
 	}
+	if ($_SESSION['u_role'] != "Client") {
+		echo 'var not_client = true;';
+	} else {
+		echo 'var not_client = false;';
+	}
 	echo 'var no_resume = '.$_SESSION['no_resume'].';';
 
 	?>
 $(document).ready(function(){
+	if (not_client) {
+		$(".hidden_from_client").show();
+	}
 	if ($("#yes").is(':checked')) { // If current student, show form elements only for current students
 		$(".usc_students_only").show();
 		$("#other_students_only").hide();	
