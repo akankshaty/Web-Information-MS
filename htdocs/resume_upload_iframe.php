@@ -42,7 +42,11 @@ $url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HT
 	}
 ?>
 		<form action="" method="post" enctype="multipart/form-data" >
-		<!--<input type="file" name="file_to_upload" id="file_to_upload" /><br />-->
+		<?php
+		if ($_SESSION['u_role'] == "Student") {
+			echo '<input type="file" name="file_to_upload" id="file_to_upload" /><br />';
+		}
+		?>
 <?php
 if(isset($_POST['upload'])) {
 	$target_dir = "resumes/";
