@@ -213,7 +213,7 @@ $(document).ready(function(){
 			$("#error_txt").show();
 			return false;
 		} else if ($("input[name=s_id]").val().match(/^[0-9]{10}$/)) {
-			var formatted = $("input[name=s_id]").slice(0,4)+"-"+$("input[name=s_id]").slice(4,6)+"-"+$("input[name=s_id]").slice(6);
+			var formatted = $("input[name=s_id]").val().slice(0,4)+"-"+$("input[name=s_id]").val().slice(4,6)+"-"+$("input[name=s_id]").val().slice(6);
 			$("input[name=s_id]").val(formatted);
 		}
 		if ($("input[name=password]").val() != $("input[name=retype_password]").val()) {
