@@ -165,8 +165,10 @@
 					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND survey='No'");
 				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "not_enrolled") {
 					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND (project_enrolled IS NULL OR project_enrolled='')");
+				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "available_students")  {
+					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND (project_enrolled IS NULL OR project_enrolled='') AND NOT status='Withdrawn'");
 				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "not_reviewed_list")  {
-					$students = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.username,li.survey,li.d_clearance,li.project_enrolled,li.status,rs.marked_as FROM login_info li LEFT JOIN reviewed_students rs ON li.username=rs.student_email WHERE li.role='Student' AND (rs.marked_as IS NULL OR rs.marked_as='' OR rs.marked_as='Unseen')");
+					$students = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.username,li.survey,li.d_clearance,li.project_enrolled,li.status,rs.marked_as FROM login_info li LEFT JOIN (SELECT * FROM reviewed_students WHERE client_email='ahamilton@example.com') rs ON li.username=rs.student_email WHERE li.role='Student' AND NOT li.status='Withdrawn' AND (li.project_enrolled='' OR li.project_enrolled IS NULL) AND (rs.marked_as IS NULL OR rs.marked_as='' OR rs.marked_as='Unseen')");
 				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "contacted_list")  {
 					$students = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.username,li.survey,li.d_clearance,li.project_enrolled,li.status,rs.marked_as FROM login_info li LEFT JOIN reviewed_students rs ON li.username=rs.student_email WHERE li.role='Student' AND rs.marked_as='Contacted'");
 				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "offer_letter_sent_list")  {
@@ -356,7 +358,8 @@
 			<option class="coords_and_admin" value="dclearance" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "dclearance") echo 'selected'; } ?> >Needs D-Clearance</option>
 			<option class="coords" value="survey" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "survey") echo 'selected'; } ?> >Haven't filled out survey</option>
 			<option class="coords" value="not_enrolled" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "not_enrolled") echo 'selected'; } ?> >Not enrolled in any project</option>
-			<option class="client" value="not_reviewed_list" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "not_reviewed_list") echo 'selected'; } ?> >I haven't reviewed</option>
+			<option class="client" value="available_students" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "available_students") echo 'selected'; } ?> >Only show students who are available</option>
+			<option class="client" value="not_reviewed_list" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "not_reviewed_list") echo 'selected'; } ?> >I haven't reviewed and is available</option>
 			<option class="client" value="contacted_list" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "contacted_list") echo 'selected'; } ?> >I have contacted</option>
 			<option class="client" value="offer_letter_sent_list" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "offer_letter_sent_list") echo 'selected'; } ?> >I sent offer letters</option>
 	
@@ -604,6 +607,9 @@ function updateFilter(value) {
 	} else if (value == "not_enrolled") {
 		window.location.replace("students.php?filterBy=not_enrolled");
 		$("option[value=not_enrolled]").attr('selected', true);
+	} else if (value == "available_students") {
+		window.location.replace("students.php?filterBy=available_students");
+		$("option[value=available_students]").attr('selected', true);
 	} else if (value == "not_reviewed_list") {
 		window.location.replace("students.php?filterBy=not_reviewed_list");
 		$("option[value=not_reviewed_list]").attr('selected', true);
