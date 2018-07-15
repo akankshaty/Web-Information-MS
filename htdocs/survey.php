@@ -210,7 +210,7 @@
 			</table>
 				<p>Are you a graduate or undergraduate student? <span class="font_red">*</span></p><br /><input type="radio" id="grad" name="student_level" disabled value="Graduate Student" <?php if($grad_student) {echo 'checked';} ?> />Graduate Student<br />
 				<input type="radio" id="undergrad" name="student_level" disabled value="Undergraduate Student" <?php if(!$grad_student) {echo 'checked';} ?> />Undergraduate Student<br /><br />
-				<p>Have you received D-Clearance for this course? <span class="font_red">*</span></p><br /><input type="radio" id="d_yes" name="d_clearance" <?php if($deadline_passed) {echo 'disabled';} ?> value="Yes" <?php if($d_clearance) {echo 'checked';} ?> />Yes<br />
+				<p>Have you received D-Clearance for this course? <span class="font_red">*</span></p><br /><input type="radio" id="d_yes" name="d_clearance" <?php if($deadline_passed OR $_SESSION['u_role'] != 'Student') {echo 'disabled';} ?> value="Yes" <?php if($d_clearance) {echo 'checked';} ?> />Yes<br />
 				<input type="radio" id="d_no" name="d_clearance" <?php if($deadline_passed OR $_SESSION['u_role'] != 'Student') {echo 'disabled';} ?> value="No" <?php if(!$d_clearance) {echo 'checked';} ?> />No<br /><br />
 		</div>
 		<div id="other_students_only"><p>Email Address <span class="font_red">*</span></p><input type="text" name="s_email" disabled placeholder="Email Address" value="<?php echo $email; ?>" /></div>
