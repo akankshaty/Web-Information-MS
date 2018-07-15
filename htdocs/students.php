@@ -35,6 +35,7 @@
 			$res = mysqli_query($conn,"SELECT * FROM vacancies WHERE project_name='".$_POST['p_name']."' AND role_name='".$_POST['p_role']."'");
 			$row = mysqli_fetch_assoc($res);
 			$total_seats = $row['total_seats'];
+			$closed = $row['closed'] == "Yes"? true : false;
 			$role_limit_reached = $row['offer_letters_sent']; // Get the number of offer letters sent for this role on this project
 			$role_limit_reached = (($total_seats - $role_limit_reached) > 0)? 'false' : 'true';
 			
@@ -53,7 +54,7 @@
 				$res = mysqli_query($conn,"SELECT * FROM offer_letter_requests WHERE student_email='".$_POST['email']."' AND project_name='".$_POST['p_name']."'");
 
 				// Check if the number of offer letters sent is within the limit set by DR Coordinator and within the limit of what the vacancy allows.
-				if (($total_sent < $letter_limit) && (mysqli_num_rows($res) < 1) && ($role_limit_reached == 'false')) { 
+				if (($total_sent < $letter_limit) && (mysqli_num_rows($res) < 1) && ($role_limit_reached == 'false') && !$closed) { 
 					
 					mysqli_autocommit($conn, FALSE); // Disable auto-commit. 
 					mysqli_query($conn,"UPDATE vacancies SET offer_letters_sent=offer_letters_sent+1 WHERE project_name='".$_POST['p_name']."' AND role_name='".$_POST['p_role']."'")? NULL : $all_query_ok = false;
@@ -106,6 +107,8 @@
 					echo '<div class="verified"><p id="error_txt" style="font-size: 16pt;">An offer letter had already been sent to this student for this project.</p></div>';
 				} else if (($role_limit_reached == 'true')) {
 					echo '<div class="verified"><p id="error_txt" style="font-size: 16pt;">Cannot send more offer letters than the number of vacancy you have for each role.</p></div>';
+				} else if ($closed) {
+					echo '<div class="verified"><p id="error_txt" style="font-size: 16pt;">Vacancy for this role is closed. Cannot send offer letters for this role.</p></div>';
 				} else { // Maximum limit reached for sending offer letters to students for each project
 					echo '<div class="verified"><p id="error_txt" style="font-size: 16pt;">Cannot send any more offer letters for this project. Maximum limit reached!</p></div>';
 				}
