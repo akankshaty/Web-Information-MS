@@ -218,7 +218,7 @@ $(document).ready(function() {
 		}
 	});
 
-	$("select[class=skills]").on("click", "option", function(e) {
+	$(document).on("click", "select[class=skills] option", function(e) {
 		$(this).parent().next().append('<div class="skill_select">'+$(this).text()+' <img class="delete_skill" src="images/delete_skill.png" /></div>');
 		$(this).remove();
 		var proj_name = $(this).attr("class").replace(/_/g,' ').replace(/\:/,'(').replace(/\./,')');
@@ -235,9 +235,10 @@ $(document).ready(function() {
 	});
   $(document).on("click",".delete_skill",function(e){
 		var value = $(this).parent().text();
+		var proj_encoded = $(this).parent().parent().prev().attr("id");
 		var proj_name = $(this).parent().parent().prev().attr("id").replace(/_/g,' ').replace(/\:/,'(').replace(/\./,')');
 		var s_id = $(this).parent().text();
-		$(this).parent().parent().prev().append('<option value="'+value+'">'+value+'</option>');
+		$(this).parent().parent().prev().append('<option class="'+proj_encoded+'" value="'+value+'">'+value+'</option>');
 		$(this).parent().remove();
 		$.ajax({
 			url: "projects.php",
