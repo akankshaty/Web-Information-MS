@@ -9,7 +9,6 @@
 	$f = fopen('php://output', 'w');
 	$res = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.d_clearance,cu.username,cu.from_units,cu.to_units,cu.timestamp FROM changed_units cu LEFT JOIN login_info li ON li.username=cu.username WHERE li.role='Student' AND li.status='Active'");
 	if(mysqli_num_rows($res) > 0) {
-		echo "true"; // Outputs true if there is at least one row. The variable is used during AJAX call in students.php.
 		fputcsv($f, array('Name', 'Email Address', 'Units Changed From', 'Units Changed To'));
 		while($row = mysqli_fetch_assoc($res)) {
 			$name = $row['f_name']." ".$row['l_name'];
@@ -51,7 +50,7 @@
 		header('Expires: 0');			 
 		fclose($f);
 	} else {
-		echo "false";
+		echo "false"; // Outputs false if there are no rows. The variable is used during AJAX call in students.php.
 		return false;
 	}
 	mysqli_close($conn);
