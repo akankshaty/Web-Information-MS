@@ -54,9 +54,10 @@
 			$remain = $offer_letter_limit-$project_offer_letters;
 			$proj_name_encoded = str_replace(')','.',str_replace('(',':',str_replace(' ','_',$row['project_name'])));
 			
-			echo '<h1>'.$row['project_name'].'</h1>';
 			if ($_SESSION['u_role'] == "Client") {
-				echo ' <h1>(<a id="project'.$count.'" class="toggle_project_form" href="javascript:void(0)">Add Vacancy?</a>)</h1>';				
+				echo '<h1>'.$row['project_name'].' (<a id="project'.$count.'" class="toggle_project_form" href="javascript:void(0)">Add Vacancy?</a>)</h1>';				
+			} else {
+				echo '<h1>'.$row['project_name'].'</h1>';
 			}
 
 			// Vacancies form starts here
