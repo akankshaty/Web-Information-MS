@@ -32,6 +32,14 @@
 	if (isset($_POST['del_student'])) {
 		$username = explode("-",$_POST['del_student'])[1]; // Parse the username (email address) from POST variable. POST variable format is "delete-[email address]"
 		mysqli_query($conn, "DELETE FROM login_info WHERE username='".$username."'");
+		mysqli_query($conn, "DELETE FROM changed_units WHERE username='".$username."'");
+		mysqli_query($conn, "DELETE FROM project_preferences WHERE email='".$username."'");
+		mysqli_query($conn, "DELETE FROM offer_letter_requests WHERE student_email='".$username."'");
+		mysqli_query($conn, "DELETE FROM password_requests WHERE email='".$username."'");
+		mysqli_query($conn, "DELETE FROM reviewed_students WHERE student_email='".$username."'");
+		mysqli_query($conn, "DELETE FROM role_preferences WHERE email='".$username."'");
+		mysqli_query($conn, "DELETE FROM student_skills WHERE email='".$username."'");
+		mysqli_query($conn, "DELETE FROM vacancy_applications WHERE student_email='".$username."'");
 			// the message
 			$msg = "Dear DR Student,\n\nThis message is to notify you that your DR course website account has been deleted by one of the DR Coordinators/Admin. You will no longer have access to the course website.";
 
@@ -44,6 +52,9 @@
 	if (isset($_POST['del_client'])) {
 		$username = explode("-*",$_POST['del_client'])[1]; // Parse the username (email address) from POST variable. POST variable format is "delete-*[email address]"
 		mysqli_query($conn, "DELETE FROM login_info WHERE username='".$username."'");
+		mysqli_query($conn, "DELETE FROM client_projects WHERE client_email='".$username."'");
+		mysqli_query($conn, "DELETE FROM password_requests WHERE email='".$username."'");
+		mysqli_query($conn, "DELETE FROM reviewed_students WHERE client_email='".$username."'");
 			// the message
 			$msg = "Dear DR Client,\n\nThis message is to notify you that your DR course website account has been deleted by one of the DR Coordinators/Admin. You will no longer have access to the course website.";
 
