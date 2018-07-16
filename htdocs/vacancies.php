@@ -56,6 +56,9 @@
 			while($asc = mysqli_fetch_assoc($add_skills_chosen)) {
 				echo '<div class="skill_select" style="padding:10px;">'.$asc['skill_name'].'</div>';
 			}
+			if (mysqli_num_rows($add_skills_chosen) < 1) {
+				echo '<p style="font-style:italic;">No skills added for this project.</p>';
+			}
 			echo '</div>
 			<p class="font_bold">Vacancies list for this project:</p>
 
