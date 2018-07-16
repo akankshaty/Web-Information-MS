@@ -24,9 +24,11 @@
 		
 		
 		
-		 
 		
-		echo '<table  class="entries" style="width:60%;margin:4%;">';
+		echo '<div class="main-content">'; 
+		echo '<h1>Home</h1>'; 
+		
+		echo '<table  class="entries">';
 		echo '<tr>';
 		echo '<th>Student</th> <th>Project</th> <th>Client</th>';
 		echo '</tr>';
@@ -53,6 +55,7 @@
 			echo '</tr>';
 		}
 		echo '</table>';
+		echo '</div>';
 	}
 
 ?>
