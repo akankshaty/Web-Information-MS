@@ -101,12 +101,14 @@
 				<th>First Name</th>
 				<th>Last Name</th>
 				<th>Email Address</th>
+				<th>Projects Managed</th>
 				<th>Access Code</th>
 			</tr>
 			<?php 
 				// Get a list of all client invitations sent by the DR Coordinator
 				$clients = mysqli_query($conn, "SELECT f_name,l_name,email,access_token FROM client_invitations");
 				while($row = mysqli_fetch_assoc($clients)) { // Prints out each row from client_invitations db table results one by one
+					$project_managed = mysqli_query($conn, "SELECT * FROM client_projects WHERE client_email='".$row['email']."'");
 					echo '<tr>';
 						echo '<td>';
 						echo $row['f_name'];
@@ -116,6 +118,13 @@
 						echo '</td>';
 						echo '<td>';
 						echo $row['email'];
+						echo '</td>';
+						echo '<td>';
+						$p_array = array();
+						while($p_managed = mysqli_fetch_assoc($project_managed)) {
+							$p_array[] = $p_managed['project_name'];
+						}
+						echo implode(", ",$p_array);
 						echo '</td>';
 						echo '<td>';
 						echo $row['access_token'];
