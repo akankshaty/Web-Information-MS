@@ -40,7 +40,8 @@ $url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HT
 		<th>Student Level</th>
 		<th>Units</th>
 		<th>Project</th>
-		<th>Grade</th>';
+		<th>Grade</th>
+		<th>Status</th>';
 		
 	while($row = mysqli_fetch_assoc($res)) {
 		echo '<tr>';
@@ -88,6 +89,13 @@ $url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HT
 		echo '<td>';
 		if (!empty($row['grade'])) {
 			echo $row['grade'];
+		} else {
+			echo '-';
+		}
+		echo '</td>';
+		echo '<td>';
+		if (!empty($row['status'])) {
+			echo $row['status'];
 		} else {
 			echo '-';
 		}
