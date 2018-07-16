@@ -147,22 +147,36 @@
 	}
 	if (isset($_POST['delete_all_students'])) {
 		mysqli_query($conn,"DELETE FROM login_info WHERE role='Student'");
-		mysqli_query($conn,"DELETE FROM email_verifications");
-		mysqli_query($conn,"DELETE FROM student_skills");
+		mysqli_query($conn,"TRUNCATE TABLE email_verifications");
+		mysqli_query($conn,"TRUNCATE TABLE student_skills");
+		mysqli_query($conn,"TRUNCATE TABLE changed_units");
+		mysqli_query($conn,"TRUNCATE TABLE offer_letter_requests");
+		mysqli_query($conn,"TRUNCATE TABLE password_requests");
+		mysqli_query($conn,"TRUNCATE TABLE project_preferences");
+		mysqli_query($conn,"TRUNCATE TABLE project_skills");
+		mysqli_query($conn,"TRUNCATE TABLE reviewed_students");
+		mysqli_query($conn,"TRUNCATE TABLE role_preferences");
+		mysqli_query($conn,"TRUNCATE TABLE vacancy_applications");
+
 		foreach(glob("resumes/*") as $file) { // Delete all resume files stored in the 'resumes' directory because all students are deleted
 			unlink($file);
 		}
 	}
 	if (isset($_POST['delete_all_clients'])) {
 		mysqli_query($conn,"DELETE FROM login_info WHERE role='Client'");
-		mysqli_query($conn,"DELETE FROM client_invitations");
-		mysqli_query($conn,"DELETE FROM client_projects");
+		mysqli_query($conn,"TRUNCATE TABLE client_invitations");
+		mysqli_query($conn,"TRUNCATE TABLE client_projects");
+		mysqli_query($conn,"TRUNCATE TABLE reviewed_students");
 	}
 	if (isset($_POST['delete_all_projects'])) {
-		mysqli_query($conn,"DELETE FROM client_projects");
-		mysqli_query($conn,"DELETE FROM password_requests");
-		mysqli_query($conn,"DELETE FROM projects");
-		
+		mysqli_query($conn,"TRUNCATE TABLE client_projects");
+		mysqli_query($conn,"TRUNCATE TABLE password_requests");
+		mysqli_query($conn,"TRUNCATE TABLE projects");
+		mysqli_query($conn,"TRUNCATE TABLE offer_letter_requests");
+		mysqli_query($conn,"TRUNCATE TABLE project_preferences");
+		mysqli_query($conn,"TRUNCATE TABLE project_skills");
+		mysqli_query($conn,"TRUNCATE TABLE vacancies");
+		mysqli_query($conn,"TRUNCATE TABLE vacancy_applications");	
 	}
 ?>
 <div class="main-content">
