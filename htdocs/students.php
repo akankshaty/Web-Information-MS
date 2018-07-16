@@ -8,7 +8,7 @@
 ?>
 <div class="main-content">
 	<h1>Students</h1>
-	<p>List of all the students signed up in this website.</p>
+	<p>List of all the students signed up in this website. <?php if($_SESSION['u_role'] != "Client") {echo '<span id="download_dclearance_file" style="cursor: pointer; text-decoration: underline; color: blue;"><strong>Click Here</strong></span> to download a list of students who do not have D-Clearance.</p>';} ?>
 	<form id="popup" method="POST" style="display:none;background-color: #fff;box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);border-radius:0 15px 0 0;width:auto;min-width:300px;margin:0;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); -webkit-transform: translate(-50%, -50%);">
 	<img src="images/red_cross_mark.png" id="close_popup" style="position:absolute;top:-3px;right:-3px;width:30px;cursor:pointer;"/>
 	<p style="margin:30px 20px 20px;">Student Name: <input type="text" style="padding:5px 10px;" id="student_name" name="student_name" value="" readonly /></p>
@@ -120,6 +120,12 @@
 			// Insert the updated information into table
 			mysqli_query($conn,"INSERT INTO reviewed_students (client_email,student_email,marked_as) VALUES ('".$_SESSION['u_name']."','".$_POST['student_email']."','".$_POST['mark_change']."')");
 		}
+		if(isset($_POST['enroll_project'])) { // Enroll the student to the project selected by DR Coordinator
+			// Delete the row from the marked student if it already exists
+			mysqli_query($conn,"DELETE FROM reviewed_students WHERE student_email='".$_POST['student_email']."'");
+			// Insert the updated information into table
+			mysqli_query($conn,"UPDATE login_info SET project_enrolled='".$_POST['enroll_project']."' WHERE username='".$_POST['student_email']."'");
+		}
 		if(isset($_POST['units_change'])) { // # 'Units registered' has changed for a student
 			// Update information into login_info table
 			mysqli_query($conn,"UPDATE login_info SET n_units='".$_POST['units_change']."' WHERE username='".$_POST['student_email']."'");
@@ -132,7 +138,7 @@
 			// Delete all rows in the changed_units table
 			mysqli_query($conn,"TRUNCATE TABLE changed_units");
 		}
-		if(isset($_POST['download_file'])) { // Download the file if there is at least one student in the "Changed # Units" list
+		if(isset($_POST['download_changed_units_file'])) { // Download the file if there is at least one student in the "Changed # Units" list
 			$query = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.d_clearance,cu.username,cu.from_units,cu.to_units,cu.timestamp FROM changed_units cu LEFT JOIN login_info li ON li.username=cu.username WHERE li.role='Student' AND li.status='Active'");
 			if(mysqli_num_rows($query) > 0) {
 				echo "true";
@@ -154,7 +160,7 @@
 				<?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th># Units</th>'; ?>
 				<?php if($_SESSION['u_role'] == "Client") echo '<th>Marked As?</th>'; ?>
 				<?php if($_SESSION['u_role'] == "Client") echo '<th>Send Offer Letter?</th>'; ?>
-        <?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>Active/Withdrawn</th>'; ?>
+        <?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>Active/ Withdrawn</th>'; ?>
 				<?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>Delete?</th>'; ?>
 			</tr>
 			<?php 
@@ -194,9 +200,23 @@
 						
 						
 						echo '<td>';
-						if (($_SESSION['u_role'] == "Admin") OR ($_SESSION['u_role'] == "Coordinator")) {
+						if (($_SESSION['u_role'] == "Admin")) {		
 							$availability = empty($row['project_enrolled'])? '<p class="font_red">Not Enrolled</p>' : $row['project_enrolled'];
 							echo $availability;
+						} else if ($_SESSION['u_role'] == "Coordinator") {
+							if(empty($row['project_enrolled'])) {
+								echo '<select name="enroll_project" class="enroll_project-*'.$row['username'].'" style="padding:5px 10px;margin:25px 5px;border-radius:5px;">';
+								echo '<option value="">Not Enrolled</option>';
+								$res = mysqli_query($conn,"SELECT project_name FROM projects p WHERE NOT EXISTS (SELECT cp.project_name FROM client_projects cp WHERE p.project_name = cp.project_name)");
+								while($projects_of_coordinators = mysqli_fetch_assoc($res)) {
+									echo '<option value="'.$projects_of_coordinators['project_name'].'">'.$projects_of_coordinators['project_name'].'</option>';
+								}
+								echo '</select>';
+								echo '<img src="images/green_check_mark.png" class="enroll_project-*'.$row['username'].'" style="display:none;width:12px;margin:4px 0 0 4px;"/>';
+							} else {
+								$availability = empty($row['project_enrolled'])? '<p class="font_red">Not Enrolled</p>' : $row['project_enrolled'];
+								echo $availability;
+							}
 						} else if ($_SESSION['u_role'] == "Client") {
 							$availability = (empty($row['project_enrolled']) && ($row['status'] != "Withdrawn"))? '<p class="font_bold font_green">Yes</p>' : '<p class="font_bold font_red">No</p>';
 							echo $availability;
@@ -368,7 +388,7 @@
 	<br />
 	<?php 
 	if ($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") {
-		echo '<p>List of students who recently changed the registered number of units. (<span id="download_file" style="cursor: pointer; text-decoration: underline; color: blue;"><strong>Download this list</strong></span> | <span id="clear_list" style="cursor: pointer; text-decoration: underline; color: blue;"><strong>Clear this list</strong></span>)</p>
+		echo '<p>List of students who recently changed the registered number of units. (<span id="download_changed_units_file" style="cursor: pointer; text-decoration: underline; color: blue;"><strong>Download this list</strong></span> | <span id="clear_list" style="cursor: pointer; text-decoration: underline; color: blue;"><strong>Clear this list</strong></span>)</p>
 	<table class="entries">
 		<thead>
 			<tr>
@@ -539,9 +559,23 @@ $(document).ready(function(){
 		});
 		$("img[class="+$.escapeSelector($(this).attr("class"))+"]").show();
 	});
+	$("select[name=enroll_project]").change(function(e) {
+		var student_email = $(this).attr("class").replace('enroll_project-*','');
+		var project_value = $("."+$.escapeSelector($(this).attr("class"))+" option:selected").val();
+		$.ajax({
+			url: "students.php",
+			type: "POST",
+			data: { "enroll_project": project_value, "student_email": student_email},
+			success: function(response){
+				
+			}
+			
+		});
+		$("img[class="+$.escapeSelector($(this).attr("class"))+"]").show();
+	});
 	$("select[name=active]").change(function(e) {
 		var student_email = $(this).attr("class").replace('active-*','');
-		var active_value = $("."+$.escapeSelector($(this).attr("class"))+" option:selected").text();
+		var active_value = $("."+$.escapeSelector($(this).attr("class"))+" option:selected").val();
 		$.ajax({
 			url: "students.php",
 			type: "POST",
@@ -582,16 +616,31 @@ $(document).ready(function(){
 			return false;
 		}
 	});
-	$("#download_file").click(function(e) {
+	$("#download_changed_units_file").click(function(e) {
 		$.ajax({
 			url: "download_csv.php",
 			type: "POST",
-			data: { "download_file": true },
+			data: { "download_changed_units_file": true },
 			success: function(response){
-				if (response.substring(0,4) == "true") {
+				if (response.substring(0,5) != "false") {
 					window.location.replace("download_csv.php");
 				} else {
-					alert("Downloading failed! There are no students in this list.");
+					alert("Download failed! There are no students in this list.");
+				}
+			}
+		});
+	});
+	$("#download_dclearance_file").click(function(e) {
+		$.ajax({
+			url: "download_no_dclearance_list.php",
+			type: "POST",
+			data: { "download_dclearance_file": true },
+			success: function(response){
+				console.log(response);
+				if (response.substring(0,5) != "false") {
+					window.location.replace("download_no_dclearance_list.php");
+				} else {
+					alert("Download failed! All students have D-Clearance.");
 				}
 			}
 		});
