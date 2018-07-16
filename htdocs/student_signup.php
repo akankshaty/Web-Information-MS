@@ -79,13 +79,14 @@
 			$hash_password = password_hash($password,PASSWORD_BCRYPT);
 			$s_id = isset($_POST['s_id'])? mysqli_real_escape_string($conn, trim($_POST['s_id'])) : NULL; // USC Student ID
 			$curr_student = mysqli_real_escape_string($conn, $_POST['curr_student']);
+			$d_clearance = $curr_student == "Yes"? "No" : "Yes"; // Set D-Clearance to 'Yes' by default for non-USC students and 'No' otherwise.
 			$student_level = isset($_POST['student_level'])? mysqli_real_escape_string($conn, $_POST['student_level']) : mysqli_real_escape_string($conn, "Non-USC student");
 			$sql = "SELECT * FROM login_info WHERE username='".$username."'";
 			$user_check = mysqli_query($conn,$sql);
 			if ($user_check && mysqli_num_rows($user_check) > 0) { // Username already exist
 				echo '<script>$(document).ready(function(){$("#error_txt").text("Username already exist. You have probably signed-up before.");$("#error_txt").show();});</script>';
 			} else { // Username does not exist, proceed to send email verification
-				$res = mysqli_query($conn, "INSERT INTO login_info (f_name,l_name,username,password,s_id,current_student,student_level,survey,d_clearance,status,verified_email,role) VALUES ('".$f_name."','".$l_name."','".$u_name."','".$hash_password."','".$s_id."','".$curr_student."','".$student_level."','No','No','Active','No','Student')");
+				$res = mysqli_query($conn, "INSERT INTO login_info (f_name,l_name,username,password,s_id,current_student,student_level,survey,d_clearance,status,verified_email,role) VALUES ('".$f_name."','".$l_name."','".$u_name."','".$hash_password."','".$s_id."','".$curr_student."','".$student_level."','No','".$d_clearance."','Active','No','Student')");
 				if ($res) {
 					echo '<script>$(document).ready(function(){$("#success_txt").text("Registration Successful! A verification email has been sent to you!");$("#success_txt").show();});</script>';
 				} else {
