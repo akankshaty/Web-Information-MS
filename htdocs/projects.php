@@ -27,6 +27,11 @@
 			$skill_name = $_POST['delete_skill'];
 			mysqli_query($conn,"DELETE FROM project_skills WHERE project_name='".$project_name."' AND skill_type='Required' AND skill_name='".$skill_name."'");
 	}
+	if(isset($_POST['remove_student'])) {
+			// Remove Student from project (Functionality available for DR Coordinators Only)
+			$student_email = explode("-",$_POST['remove_student'])[1];
+			mysqli_query($conn,"UPDATE login_info SET project_enrolled='' WHERE username='".$student_email."'");
+	}
 ?>
 <div class="main-content">
 	<?php 
@@ -49,7 +54,11 @@
 			$remain = $offer_letter_limit-$project_offer_letters;
 			$proj_name_encoded = str_replace(')','.',str_replace('(',':',str_replace(' ','_',$row['project_name'])));
 			
-			echo '<h1>'.$row['project_name'].' (<a id="project'.$count.'" class="toggle_project_form" href="javascript:void(0)">Add Vacancy?</a>)</h1>';
+			echo '<h1>'.$row['project_name'].'</h1>';
+			if ($_SESSION['u_role'] == "Client") {
+				echo ' <h1>(<a id="project'.$count.'" class="toggle_project_form" href="javascript:void(0)">Add Vacancy?</a>)</h1>';				
+			}
+
 			// Vacancies form starts here
 			echo '<div class="survey sproject'.$count.'" style="display:none;width: 300px; overflow: auto;text-align: center;">
 				<form class="new_vacancy'.$count.'" action="" method="POST">
@@ -88,75 +97,81 @@
 			while($asc = mysqli_fetch_assoc($add_skills_chosen)) {
 				echo '<div class="skill_select">'.$asc['skill_name'].' <img class="delete_skill" src="images/delete_skill.png" /></div>';
 			}
-			echo '</div>
-			<p style="line-height:2em;">You may send a total of '.$offer_letter_limit.' offer letter(s) to students for each project. You still have '.$remain.' offer letters remaining for this project. Keep in mind that you will not be allowed to send more offer letters than what your vacancy for each role allows.</p>
+			echo '</div>';
+			if ($_SESSION['u_role'] == "Client") {
+				echo '<p style="line-height:2em;">You may send a total of '.$offer_letter_limit.' offer letter(s) to students for each project. You still have '.$remain.' offer letters remaining for this project. Keep in mind that you will not be allowed to send more offer letters than what your vacancy for each role allows.</p>
 
-		<table class="entries">
-			<thead>
-				<tr>
-					<th>Vacant Role</th>
-					<th>Seats Filled</th>
-					<th>Offer Letters Sent</th>
-					<th>Close A Vacancy?</th>
+			<table class="entries">
+				<thead>
+					<tr>
+						<th>Vacant Role</th>
+						<th>Seats Filled</th>
+						<th>Offer Letters Sent</th>
+						<th>Close A Vacancy?</th>
 
-				</tr>';
-				// Get a list of all vacancies in this project
-				$vacancies = mysqli_query($conn, "SELECT * FROM vacancies WHERE project_name='".$row['project_name']."'");
+					</tr>';
+					// Get a list of all vacancies in this project
+					$vacancies = mysqli_query($conn, "SELECT * FROM vacancies WHERE project_name='".$row['project_name']."'");
 
-				while($row1 = mysqli_fetch_assoc($vacancies)) { // Prints out each row from vacancies db table results one by one
-					$seat_update = mysqli_query($conn, "SELECT COUNT(status) AS num_seats_filled FROM offer_letter_requests WHERE project_name='".$row['project_name']."' AND role_name='".$row1['role_name']."' AND status='Accepted'");
-					$seat_update = mysqli_fetch_assoc($seat_update)['num_seats_filled'];
-					mysqli_query($conn,"UPDATE vacancies SET seats_filled=".$seat_update." WHERE project_name='".$row['project_name']."' AND role_name='".$row1['role_name']."'");
-					$offer_sent_update = mysqli_query($conn, "SELECT COUNT(status) AS num_offer_sent FROM offer_letter_requests WHERE project_name='".$row['project_name']."' AND role_name='".$row1['role_name']."' AND (status='Pending' OR status='Accepted')");
-					$offer_sent_update = mysqli_fetch_assoc($offer_sent_update)['num_offer_sent'];
-					mysqli_query($conn,"UPDATE vacancies SET offer_letters_sent=".$offer_sent_update." WHERE project_name='".$row['project_name']."' AND role_name='".$row1['role_name']."'");
-					echo '<tr>';
-						echo '<td>';
-						echo $row1['role_name'];
-						echo '</td>';
-						echo '<td>';
-						if($row1['seats_filled'] >= $row1['total_seats']) {
-							echo '<p class="font_green">'.$row1['seats_filled'].'/'.$row1['total_seats'].'</p>';
-						} else {
-							echo '<p class="font_red">'.$row1['seats_filled'].'/'.$row1['total_seats'].'</p>';							
-						}
-						echo '</td>';
-						echo '<td>';
-						if($row1['offer_letters_sent'] >= $row1['total_seats']) {
-							echo '<p class="font_red">'.$row1['offer_letters_sent'].'/'.$row1['total_seats'].'</p>';
-						} else {
-							echo '<p class="font_green">'.$row1['offer_letters_sent'].'/'.$row1['total_seats'].'</p>';							
-						}
-						echo '</td>';
+					while($row1 = mysqli_fetch_assoc($vacancies)) { // Prints out each row from vacancies db table results one by one
+						$seat_update = mysqli_query($conn, "SELECT COUNT(status) AS num_seats_filled FROM offer_letter_requests WHERE project_name='".$row['project_name']."' AND role_name='".$row1['role_name']."' AND status='Accepted'");
+						$seat_update = mysqli_fetch_assoc($seat_update)['num_seats_filled'];
+						mysqli_query($conn,"UPDATE vacancies SET seats_filled=".$seat_update." WHERE project_name='".$row['project_name']."' AND role_name='".$row1['role_name']."'");
+						$offer_sent_update = mysqli_query($conn, "SELECT COUNT(status) AS num_offer_sent FROM offer_letter_requests WHERE project_name='".$row['project_name']."' AND role_name='".$row1['role_name']."' AND (status='Pending' OR status='Accepted')");
+						$offer_sent_update = mysqli_fetch_assoc($offer_sent_update)['num_offer_sent'];
+						mysqli_query($conn,"UPDATE vacancies SET offer_letters_sent=".$offer_sent_update." WHERE project_name='".$row['project_name']."' AND role_name='".$row1['role_name']."'");
+						echo '<tr>';
 							echo '<td>';
-
-							if (($row1['closed'] != "Yes") && ($row1['seats_filled'] < $row1['total_seats'])) {
-								$p_name = str_replace(' ','_',$row1['project_name']);
-								$r_name = str_replace(' ','_',$row1['role_name']);
-								echo '<img src="images/close.png" id="close-*'.$p_name.'-*'.$r_name.'" class="close" style="width: 90px;cursor: pointer;" />';
-							} else {
-								echo 'Vacancy Closed!';
-								mysqli_query($conn,"UPDATE vacancies SET closed='Yes' WHERE project_name='".$row1['project_name']."' AND role_name='".$row1['role_name']."'");
-							}
-							
+							echo $row1['role_name'];
 							echo '</td>';
-					echo '</tr>';
-				}
-				if (mysqli_num_rows($vacancies) < 1) { // If no vacancies added
-					echo '<tr>';
-						echo '<td colspan="10">';
-						echo 'No vacancies added.';
-						echo '</td>';
-					echo '</tr>';
-				}
-				echo '</thead>
-					</table><br />';
+							echo '<td>';
+							if($row1['seats_filled'] >= $row1['total_seats']) {
+								echo '<p class="font_green">'.$row1['seats_filled'].'/'.$row1['total_seats'].'</p>';
+							} else {
+								echo '<p class="font_red">'.$row1['seats_filled'].'/'.$row1['total_seats'].'</p>';							
+							}
+							echo '</td>';
+							echo '<td>';
+							if($row1['offer_letters_sent'] >= $row1['total_seats']) {
+								echo '<p class="font_red">'.$row1['offer_letters_sent'].'/'.$row1['total_seats'].'</p>';
+							} else {
+								echo '<p class="font_green">'.$row1['offer_letters_sent'].'/'.$row1['total_seats'].'</p>';							
+							}
+							echo '</td>';
+								echo '<td>';
+
+								if (($row1['closed'] != "Yes") && ($row1['seats_filled'] < $row1['total_seats'])) {
+									$p_name = str_replace(' ','_',$row1['project_name']);
+									$r_name = str_replace(' ','_',$row1['role_name']);
+									echo '<img src="images/close.png" id="close-*'.$p_name.'-*'.$r_name.'" class="close" style="width: 90px;cursor: pointer;" />';
+								} else {
+									echo 'Vacancy Closed!';
+									mysqli_query($conn,"UPDATE vacancies SET closed='Yes' WHERE project_name='".$row1['project_name']."' AND role_name='".$row1['role_name']."'");
+								}
+								
+								echo '</td>';
+						echo '</tr>';
+					}
+					if (mysqli_num_rows($vacancies) < 1) { // If no vacancies added
+						echo '<tr>';
+							echo '<td colspan="10">';
+							echo 'No vacancies added.';
+							echo '</td>';
+						echo '</tr>';
+					}
+					echo '</thead>
+						</table><br />';
+			}
 			echo '<p class="font_bold" style="font-size: 14pt;">Students enrolled in this project</p>';
 			echo '<table class="entries">';
 			echo '<th>Name</th>';
 			echo '<th>Email Address</th>';
-			echo '<th>Role Name</th>';
-			$student_enrolled = mysqli_query($conn,"SELECT li.f_name,li.l_name,li.username,olr.project_name,olr.role_name FROM login_info li LEFT JOIN offer_letter_requests olr ON li.username=olr.student_email WHERE olr.project_name='".$row['project_name']."' AND olr.status='Accepted'");
+			if($_SESSION['u_role'] == "Client") {echo '<th>Role Name</th>';} else {echo '<th>Remove From Project?</th>';}
+			if($_SESSION['u_role'] == "Client") {
+				$student_enrolled = mysqli_query($conn,"SELECT li.f_name,li.l_name,li.username,olr.project_name,olr.role_name FROM login_info li LEFT JOIN offer_letter_requests olr ON li.username=olr.student_email WHERE olr.project_name='".$row['project_name']."' AND olr.status='Accepted'");
+			} else {
+				$student_enrolled = mysqli_query($conn,"SELECT * FROM login_info WHERE role='Student' AND project_enrolled='".$row['project_name']."'");
+			}
 			if(mysqli_num_rows($student_enrolled) > 0) {
 				while($srow = mysqli_fetch_assoc($student_enrolled)) {
 					echo '<tr>';
@@ -166,9 +181,15 @@
 						echo '<td>';
 							echo $srow['username'];
 						echo '</td>';
-						echo '<td>';
-							echo $srow['role_name'];
-						echo '</td>';
+						if($_SESSION['u_role'] == "Client") {
+							echo '<td>';
+								echo $srow['role_name'];
+							echo '</td>';
+						} else {
+							echo '<td>';
+								echo '<img src="images/delete_cross_mark.png" id="delete-'.$srow['username'].'" class="delete" style="width:30px;cursor:pointer;" />';
+							echo '</td>';
+						}
 					echo '</tr>';
 				}
 			} else {
@@ -208,6 +229,22 @@ $(document).ready(function() {
 				url: "update_info.php",
 				type: "POST",
 				data: { "close_vacancy": v_name },
+				success: function(response){
+					
+				}
+			});
+			window.location.replace("projects.php");
+		} else {
+			return false;
+		}
+	});
+	$(".delete").click(function(event){
+		if (confirm('Are you sure you want to remove this student from this project?')) {
+			var v_name = event.target.id;
+			$.ajax({
+				url: "projects.php",
+				type: "POST",
+				data: { "remove_student": v_name },
 				success: function(response){
 					
 				}
