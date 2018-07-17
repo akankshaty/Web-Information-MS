@@ -275,6 +275,18 @@
 			<!----- Skills Section ----->
 			
 			<h3>Skills (<a id="edit_skills" href="javascript:void(0)">Add/Edit Skills?</a>)</h3>
+			<div id="skill_setting">
+				List the required skills as comma-separated values. The skills listed here will be used to generate the survey form.<br /><br />
+				<textarea rows="8" cols="50" name="skill_list" placeholder="Add skills separated by commas. (Eg: Python, Java)"><?php 
+					$skills = mysqli_query($conn, "SELECT skill_name from skills");
+					$skills_list = "";
+					while($row = mysqli_fetch_assoc($skills)) {
+						$skills_list .= trim($row['skill_name']).", ";
+					}
+					$skills_list = rtrim(trim($skills_list),',');
+					echo $skills_list;
+				?></textarea><br /><br />
+			</div>
 			<table class="entries">
 				<thead>
 					<tr>
@@ -298,23 +310,23 @@
 				}
 			?>
 				</thead>
-			</table><br />
-			<div id="skill_setting">
-				List the required skills. The skills listed here will be used to generate the survey form.<br /><br />
-				<textarea rows="8" cols="50" name="skill_list" placeholder="Add skills separated by commas. (Eg: Python, Java)"><?php 
-					$skills = mysqli_query($conn, "SELECT skill_name from skills");
-					$skills_list = "";
-					while($row = mysqli_fetch_assoc($skills)) {
-						$skills_list .= trim($row['skill_name']).", ";
-					}
-					$skills_list = rtrim(trim($skills_list),',');
-					echo $skills_list;
-				?></textarea><br />
-			</div>
+			</table>
 			
 			<!----- Project Roles Section ----->
 			
 			<h3>Project Roles (<a id="edit_roles" href="javascript:void(0)">Add/Edit Roles?</a>)</h3>
+			<div id="role_setting">
+				List the required roles in projects. The roles listed here will be used to generate the survey form.<br /><br />
+				<textarea rows="8" cols="50" name="role_list" placeholder="Add roles separated by commas. (Eg: Front-end developer, Tester)"><?php 
+					$roles = mysqli_query($conn, "SELECT role_name from project_roles");
+					$roles_list = "";
+					while($row = mysqli_fetch_assoc($roles)) {
+						$roles_list .= trim($row['role_name']).", ";
+					}
+					$roles_list = rtrim(trim($roles_list),',');
+					echo $roles_list;
+				?></textarea><br /><br />
+			</div>
 			<table class="entries">
 				<thead>
 					<tr>
@@ -339,23 +351,23 @@
 				}
 			?>
 				</thead>
-			</table><br />
-			<div id="role_setting">
-				List the required roles in projects. The roles listed here will be used to generate the survey form.<br /><br />
-				<textarea rows="8" cols="50" name="role_list" placeholder="Add roles separated by commas. (Eg: Front-end developer, Tester)"><?php 
-					$roles = mysqli_query($conn, "SELECT role_name from project_roles");
-					$roles_list = "";
-					while($row = mysqli_fetch_assoc($roles)) {
-						$roles_list .= trim($row['role_name']).", ";
-					}
-					$roles_list = rtrim(trim($roles_list),',');
-					echo $roles_list;
-				?></textarea><br />
-			</div>
+			</table>
 			
 			<!----- Projects Section ----->
 			
 			<h3>Projects (<a id="edit_projects" href="javascript:void(0)">Add/Edit Projects?</a>)</h3>
+			<div id="project_setting">
+				List the projects available this semester. The projects listed here will be used to generate the survey form.<br /><br />
+				<textarea rows="8" cols="50" name="project_list" placeholder="Add projects separated by commas. (Eg: COCOMO, UCC (Java))"><?php 
+					$projects = mysqli_query($conn, "SELECT project_name from projects");
+					$projects_list = "";
+					while($row = mysqli_fetch_assoc($projects)) {
+						$projects_list .= trim($row['project_name']).", ";
+					}
+					$projects_list = rtrim(trim($projects_list),',');
+					echo $projects_list;
+				?></textarea><br /><br />
+			</div>
 			<table class="entries">
 				<thead>
 					<tr>
@@ -380,19 +392,7 @@
 				}
 			?>
 				</thead>
-			</table><br />
-			<div id="project_setting">
-				List the projects available this semester. The projects listed here will be used to generate the survey form.<br /><br />
-				<textarea rows="8" cols="50" name="project_list" placeholder="Add projects separated by commas. (Eg: COCOMO, UCC (Java))"><?php 
-					$projects = mysqli_query($conn, "SELECT project_name from projects");
-					$projects_list = "";
-					while($row = mysqli_fetch_assoc($projects)) {
-						$projects_list .= trim($row['project_name']).", ";
-					}
-					$projects_list = rtrim(trim($projects_list),',');
-					echo $projects_list;
-				?></textarea><br />
-			</div>
+			</table>
 			
 			<!----- Semester Reset Section ----->
 			
