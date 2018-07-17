@@ -55,9 +55,10 @@
 				
 				$username = $row['username'];
 				$password = $_POST['new_password'];
+				$hash_password = password_hash($password,PASSWORD_BCRYPT);
 				
 				mysqli_autocommit($conn, FALSE); // Disable auto-commit. 
-				mysqli_query($conn,"UPDATE login_info SET password='".$password."' WHERE username='".$username."'")? NULL : $all_query_ok = false;
+				mysqli_query($conn,"UPDATE login_info SET password='".$hash_password."' WHERE username='".$username."'")? NULL : $all_query_ok = false;
 				mysqli_query($conn,"DELETE FROM password_requests WHERE email='".$row['username']."'")? NULL : $all_query_ok = false;
 				$all_query_ok? mysqli_commit($conn) : mysqli_rollback($conn); // Rollback if one of the two commands fail
 				mysqli_autocommit($conn, TRUE); // Re-enable auto-commit. 
