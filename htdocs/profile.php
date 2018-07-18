@@ -61,48 +61,111 @@
 		$query .= "WHERE username='".$_SESSION['u_name']."' AND role='Student'";
 		
 		$login_info = mysqli_query($conn,$query);
-
-		echo "<div style='margin-left: 20px;'>"; 
+		$row = mysqli_fetch_assoc(mysqli_query($conn,$query));
 		
-		echo '<h1>Welcome ' . $_SESSION['u_name'] . '. Here\'s your info.' . '</h1>'; 
+		echo "<div class='main-content' style='text-align:center;'>"; 
 		
-		echo '<table  class="entries">';
+		echo '<h1>Welcome ' . $row['f_name'] . '. Here\'s your student profile.' . '</h1>'; 
 		
-		echo '<tr>';
-		echo '<th>Name</th> <th>Username</th> <th>Student ID</th> <th>Are you a current student</th> <th>Graduate or Under-graduate</th> <th>Number of units enrolled(if intern, you have no units)</th> <th>Are you a remote student</th> <th>Survey filled</th> <th>D-Clearance granted</th> <th>Resume</th> <th>Project enrolled</th> <th>Grade</th> <th>Your evaluation</th> <th>Active/Withdrawn</th>';
-		echo '</tr>';
+		echo '<table class="entries student_profile" style=" margin-left:auto;margin-right:auto; width: 70%;">';
+		
+		// echo '<tr>';
+		// echo '<th>Name</th> <th>Username</th> <th>Student ID</th> <th>Are you a current student</th> <th>Graduate or Under-graduate</th> <th>Number of units enrolled(if intern, you have no units)</th> <th>Are you a remote student</th> <th>Survey filled</th> <th>D-Clearance granted</th> <th>Resume</th> <th>Project enrolled</th> <th>Grade</th> <th>Your evaluation</th> <th>Active/Withdrawn</th>';
+		// echo '</tr>';
 
 		while($row = mysqli_fetch_assoc($login_info)) {
 			echo '<tr>';
-
+			echo '<th>Name</th>';
 			echo '<td>' . $row['f_name'] . ' ' . $row['l_name'] . '</td>';
+			echo '</tr>';
+			echo '<tr>';
+			echo '<th>Username</th>';
 			echo '<td>' . $row['username'] . '</td>';
-			echo '<td>' . $row['s_id'] . '</td>';
+			echo '</tr>';
+			if($row['current_student'] == 'Yes') {
+				echo '<tr>';
+				echo '<th>Student ID</th>';
+				echo '<td>' . $row['s_id'] . '</td>';
+				echo '</tr>';
+				echo '<tr>';
+				echo '<th>Graduate or Under-graduate?</th>';
+				echo '<td>' . $row['student_level'] . '</td>';
+				echo '</tr>';
+				echo '<tr>';
+				echo '<th>D-Clearance granted?</th>';
+				echo '<td>' . $row['d_clearance'] . '</td>';
+				echo '</tr>';
+			}
+			echo '<tr>';
+			echo '<th>Are you a current USC student?</th>';
 			echo '<td>' . $row['current_student'] . '</td>';
-			echo '<td>' . $row['student_level'] . '</td>';
-			echo '<td>' . $row['n_units'] . '</td>';
+			echo '</tr>';
+
+			echo '<tr>';
+			echo '<th>Number of units enrolled (No units for intern)</th>';
+			if($row['n_units'] == "1") {
+				$units = "1 unit";
+			} else if($row['n_units'] == "2") {
+				$units = "2 units";
+			} else if($row['n_units'] == "3") {
+				$units = "3 units";
+			} else if($row['n_units'] == "4+") {
+				$units = "4+ units";
+			} else if($row['n_units'] == "intern") {
+				$units = "Unpaid Intern";
+			} else {
+				$units = "You haven't selected any units.";
+			}
+			echo '<td>' . $units . '</td>';
+			echo '</tr>';
+			echo '<tr>';
+			echo '<th>Are you a remote student?</th>';
 			echo '<td>' . $row['remote'] . '</td>';
+			echo '</tr>';
+			echo '<tr>';
+			echo '<th>Survey filled?</th>';
 			echo '<td>' . $row['survey'] . '</td>';
-			echo '<td>' . $row['d_clearance'] . '</td>';
-			echo '<td>' . '<a href=\''.$row['resume_name_on_server'].'\' target=\'_blank\'>'.$row['resume_name_by_user'].'</a>' . '</td>';
-			echo '<td>' . $row['project_enrolled'] .'</td>';
+			echo '</tr>';
+			echo '<tr>';
+			echo '<th>Resume</th>';
+			if (!empty($row['resume_name_on_server'])) {
+				echo '<td>' . '<a href=\''.$row['resume_name_on_server'].'\' target=\'_blank\'>'.$row['resume_name_by_user'].'</a>' . '</td>';
+			} else {
+				echo '<td>' . 'No resume on file.' . '</td>';
+			}
+			echo '</tr>';
+			echo '<tr>';
+			echo '<th>Project enrolled</th>';
+			if(empty($row['project_enrolled'])) {
+				echo '<td>' . 'None' . '</td>';
+			} else {
+				echo '<td>' . $row['project_enrolled'] . '</td>';
+			}
+			echo '</tr>';
+			echo '<tr>';
+			echo '<th>Grade</th>';
 			if($row['grade'] == NULL) {
 				echo '<td>' . 'No grade assigned yet' . '</td>';
 			} else {
 				echo '<td>' . $row['grade'] . '</td>';
 			}
+			echo '</tr>';
+			echo '<tr>';
+			echo '<th>Student Evaluation</th>';
 			if($row['student_evaluation'] == NULL) {
 				echo '<td>' . 'You haven\'t been evaluated yet.' . '</td>';
 			} else {
 				echo '<td>' . $row['student_evaluation'] . '</td>';
 			}
+			echo '</tr>';
+			echo '<tr>';
+			echo '<th>Active/Withdrawn</th>';
 			echo '<td>' . $row['status'] . '</td>';
-
 			echo '</tr>';
 		}
 
 		echo '</table>';
-		echo '</div>';
+		echo '</div><br /><br />';
 	}
 ?>
 
@@ -114,16 +177,18 @@ if ($_SESSION['u_role'] == "Client") {
 	$query .= "WHERE username='".$_SESSION['u_name']."' AND role='Client'";
 	
 	$login_info = mysqli_query($conn,$query);
-
+	$row = mysqli_fetch_assoc(mysqli_query($conn,$query));
+	
 	$query = "SELECT project_name ";
 	$query .= "FROM client_projects ";
 	$query .= "WHERE client_email='" . $_SESSION['u_name'] . "'";
 
 	$client_projects = mysqli_query($conn,$query);
 
-	echo "<div style='margin-left: 20px;'>"; 
 	
-	echo '<h1>Welcome ' . $_SESSION['u_name'] . '. Here\'s your info.' . '</h1>'; 
+	echo "<div class='main-content' style='text-align:center;'>"; 
+	
+	echo '<h1>Welcome ' . $row['f_name'] . '. Here\'s your info.' . '</h1>'; 
 	
 	echo '<table  class="entries">';
 	
@@ -140,7 +205,7 @@ if ($_SESSION['u_role'] == "Client") {
 		echo '</tr>';
 	}
 	echo '</table>';
-	echo '<br> <br>';
+	echo '<br>';
 	
 	echo '<h1> Here are your projects </h1>'; 
 	
@@ -159,7 +224,12 @@ if ($_SESSION['u_role'] == "Client") {
 	echo '</div>';
 }
 ?>
-
+<script>
+$(document).ready(function() {
+	$(".student_profile th:odd").css("background-color","#680606");
+	$(".student_profile th:even").css("background-color","#590606");
+});
+</script>
 <?php
 	include('footer.php');
 ?>
