@@ -36,7 +36,7 @@
 			
 		} else {
 			echo '<div class="verified"><div id="error_txt"><img src="images/red_cross_mark.png" />Invalid access token ID! Heading back to homepage...</div></div>';
-			header( "refresh:5;url=index.php" );
+			echo "<meta http-equiv='refresh' content='5;url=index.php'>";
 		}
 		
 		
