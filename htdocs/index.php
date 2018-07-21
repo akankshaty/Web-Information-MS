@@ -97,6 +97,7 @@
 				// Insert the values into password_requests table
 				mysqli_query($conn,"INSERT INTO password_requests (email,access_token) VALUES ('".$email."','".$random_string."')");
 				$url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]", PHP_URL_HOST); // Parses the domain of the DR Website
+				$curr_path = dirname((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
 				// Email for resetting password
 				$to = $email;
 
@@ -109,8 +110,9 @@
 				<head>
 				</head>
 				<body>
-					<p>Dear '.$f_name.' '.$l_name.',<br />A password request for this email address was made from the system. Please follow the link below to reset the password.</p><br />
-					<a href="'.$url.'/reset_password.php?access='.$random_string.'"></a>
+					<p>Dear '.$f_name.',<br />A password request for this email address was made from the system. Please follow the link below to reset the password. <br /><strong>Password Reset Link: </strong><a href="'.$curr_path.'/reset_password.php?access='.$random_string.'">'.$curr_path.'/reset_password.php?access='.$random_string.'</a></p><br />
+					Thanks, <br />
+					CSCI 590 DR Management Team
 				</body>
 				</html>
 				';
@@ -118,7 +120,7 @@
 				// To send HTML mail, the Content-type header must be set
 				$headers[] = 'MIME-Version: 1.0';
 				$headers[] = 'Content-type: text/html; charset=iso-8859-1';
-				$headers[] = 'From: <no-reply@'.$url.'>'; // Format of the variable ("From: <no-reply@example.com>")
+				$headers[] = 'From: DR CSCI-590 <no-reply@'.$url.'>'; // Format of the variable ("From: DR CSCI-590 <no-reply@domain_name.com>")
 				// Mail it to client
 				mail($to, $subject, $message, implode("\r\n", $headers));
 				echo '<script>$(document).ready(function(){$(".email_sent").show();});</script>';
