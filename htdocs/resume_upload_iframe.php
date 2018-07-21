@@ -36,14 +36,14 @@ $url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HT
 	
 	$row = mysqli_fetch_assoc($res);
 	if (!empty($row['resume_name_on_server'])) {
-		echo '<span id="resume_status"><a href="'.$row['resume_name_on_server'].'" target="_blank" ><p style="font-size:11pt;margin: 5px 0; font-style: italic;">'.$row['resume_name_by_user'].'</p></a></span>';
+		echo '<span id="resume_status"><p style="font-size:11pt;margin: 5px 0; font-style: italic;"><strong>File: </strong><a href="'.$row['resume_name_on_server'].'" target="_blank" >'.$row['resume_name_by_user'].'</a></p></span>';
 	} else {
 		echo '<span id="resume_status"><p style="font-size:11pt;margin: 5px 0; font-style: italic;">No resume on file.</p></span>';
 	}
 ?>
 		<form action="" method="post" enctype="multipart/form-data" >
 		<?php
-		if ($_SESSION['u_role'] == "Student") {
+		if ($_SESSION['u_role'] == "Student" && !$deadline_passed) {
 			echo '<input type="file" name="file_to_upload" id="file_to_upload" /><br />';
 		}
 		?>
@@ -94,7 +94,7 @@ if(isset($_POST['upload'])) {
 				}
 			}
 			mysqli_query($conn,"UPDATE login_info SET resume_name_by_user='".$_FILES["file_to_upload"]["name"]."', resume_name_on_server='".$target_file."' WHERE username='".$_SESSION['u_name']."'");
-			echo '<script>$(document).ready(function(){$("#resume_status").html("<a href=\"'.$target_file.'\" target=\"_blank\" ><p style=\"font-size:11pt;margin: 5px 0; font-style: italic;\">'.$_FILES["file_to_upload"]["name"].'</p></a>");});</script>';
+			echo '<script>$(document).ready(function(){$("#resume_status").html("<p style=\"font-size:11pt;margin: 5px 0; font-style: italic;\"><strong>File: </strong><a href=\"'.$target_file.'\" target=\"_blank\" >'.$_FILES["file_to_upload"]["name"].'</a></p>");});</script>';
 			echo "<p class='font_green' style='font-size:11pt;font-weight: normal;margin: 5px 0;'>The file ". basename( $_FILES["file_to_upload"]["name"])." has been uploaded.</p>";
 		} else {
 			echo "<p class='font_red' style='font-size:11pt;font-weight: normal;margin: 5px 0;'>Upload Failed! Sorry, there was an error uploading your file.</p>";
