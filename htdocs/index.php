@@ -50,7 +50,7 @@
 	</div>
 	<?php 
 		include('auth.php');
-		if (isset($_POST['signin']) && isset($_POST['username'])) {
+		if (isset($_POST['signin']) && isset($_POST['username'])) { // Login process
 			$username = mysqli_real_escape_string($conn, $_POST['username']);
 			$password = mysqli_real_escape_string($conn, $_POST['password']);
 			//$result = mysqli_query($conn,"SELECT * FROM login_info WHERE username='".$username."' AND password=".$password);
@@ -75,13 +75,13 @@
 				echo '<script>$(document).ready(function(){$("#error_txt").text("Username(email) does not exist.");$(".error").show();});</script>';
 			}
 		}
-		if (isset($_POST['submit'])) {
+		if (isset($_POST['submit'])) { // Send password reset request
 			$email = mysqli_real_escape_string($conn, $_POST['email']);
 			$result = mysqli_query($conn,"SELECT * FROM login_info WHERE username='".$email."'");
 			$row = mysqli_fetch_assoc($result);
 			$f_name = $row['f_name'];
 			$l_name = $row['l_name'];
-			if (mysqli_num_rows($result) > 0) {
+			if (mysqli_num_rows($result) > 0) { // Send password reset email only if the user email exist in the database.
 				$string_not_unique = true;
 				do { // Loop until the created random string is unique (random string which is not found in database already)
 					$random_string = "";

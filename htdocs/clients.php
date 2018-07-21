@@ -47,8 +47,8 @@
 			<head>
 			</head>
 			<body>
-				<p>Dear '.$f_name.',<br />This message is to notify you that the DR Coordinator has invited you to join the CSCI 590 Directed Research course website.
-				Please click the link below to sign-up to the website. <br /><strong>Email Verification Link: </strong><a href="'.$curr_path.'/client_signup.php?access='.$random_string.'">'.$curr_path.'/client_signup.php?access='.$random_string.'</a></p><br />
+				<p>Dear '.$f_name.',<br /><br />This message is to notify you that the DR Coordinator has invited you to join the CSCI 590 Directed Research course website.
+				Please click on the link below to sign-up to the website. <br /><strong>Email Verification Link: </strong><a href="'.$curr_path.'/client_signup.php?access='.$random_string.'">'.$curr_path.'/client_signup.php?access='.$random_string.'</a></p><br />
 				Thanks, <br />
 				CSCI 590 DR Management Team
 			</body>
