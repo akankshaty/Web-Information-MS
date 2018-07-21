@@ -1,7 +1,7 @@
 <?php 
 	session_start();
 	include('auth.php');
-	if ($_SESSION['u_role'] != "Coordinator" AND $_SESSION['u_role'] != "Admin") {
+	if ($_SESSION['u_role'] != "Coordinator" AND $_SESSION['u_role'] != "Admin" AND $_SESSION['u_role'] != "Student") {
 		header("Location: index.php");
 	}
 	if (isset($_POST['name'])) {
@@ -76,17 +76,24 @@
 			// send email
 			mail($_POST['name'],"DR course website account deletion notification",$msg);
 	}
+	if (isset($_POST['apply_vacancy'])) {
+		// Parse the role name and project name of vacancy from POST variable. POST variable format is "apply-*[project name]-*[role name]"
+		$project_name = explode("-*",str_replace('_',' ',$_POST['apply_vacancy']))[1]; // Remove underscores and replace with a space
+		$role_name = explode("-*",str_replace('_',' ',$_POST['apply_vacancy']))[2]; // Remove underscores and replace with a space
+		mysqli_query($conn, "INSERT INTO vacancy_applications (project_name,role_name,student_email) VALUES ('".$project_name."','".$role_name."','".$_SESSION['u_name']."')");
+	}
 	if (isset($_POST['close_vacancy'])) {
-		// Parse the role name and project name of vacancy from POST variable. POST variable format is "close-*[project name]-*[vacancy name]"
+		// Parse the role name and project name of vacancy from POST variable. POST variable format is "close-*[project name]-*[role name]"
 		$project_name = explode("-*",str_replace('_',' ',$_POST['close_vacancy']))[1];
 		$role_name = explode("-*",str_replace('_',' ',$_POST['close_vacancy']))[2]; 
 		mysqli_query($conn, "UPDATE vacancies SET closed='Yes' WHERE project_name='".$project_name."' AND role_name='".$role_name."'");
 	}
 	if(isset($_POST['accept_offer'])) {
-			// Update the values in the offer_letter_requests table
+			// Student accepted an offer. Update the values in the offer_letter_requests table
 			$student_email = explode("-*",$_POST['accept_offer'])[0];
 			$project_name = explode("-*",$_POST['accept_offer'])[1];
 			
+			mysqli_query($conn,"DELETE FROM vacancy_applications WHERE student_email='".$_POST['s_email']."'");
 			mysqli_query($conn,"UPDATE offer_letter_requests SET status='Accepted' WHERE student_email='".$student_email."' AND project_name='".$project_name."'");
 			mysqli_query($conn,"UPDATE offer_letter_requests SET status='Declined' WHERE student_email='".$student_email."' AND status='Pending'");
 			mysqli_query($conn,"UPDATE login_info SET project_enrolled='".$project_name."' WHERE username='".$student_email."'");
@@ -100,6 +107,5 @@
 			mysqli_query($conn,"UPDATE offer_letter_requests SET status='Declined' WHERE student_email='".$student_email."' AND project_name='".$project_name."'");
 
 	}		
-	
 	mysqli_close($conn);
 ?>
