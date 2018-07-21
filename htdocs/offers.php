@@ -33,7 +33,7 @@
 
 			</tr>';
 			// Get a list of all offer letters sent to this student
-			$offers = mysqli_query($conn, "SELECT * FROM offer_letter_requests WHERE student_email='".$_SESSION['u_name']."'");
+			$offers = mysqli_query($conn, "SELECT * FROM offer_letter_requests WHERE student_email='".$_SESSION['u_name']."' AND NOT status='Added'");
 			while($row1 = mysqli_fetch_assoc($offers)) { // Prints out each row from offer_letter_requests db table results one by one
 				echo '<tr>';
 					echo '<td>';
