@@ -5,10 +5,13 @@
 	if ($_SESSION['u_role'] != "Coordinator" AND $_SESSION['u_role'] != "Admin" AND $_SESSION['u_role'] != "Client") {
 		header("Location: index.php");
 	}
+	$res = mysqli_query($conn,"SELECT setting_value FROM settings_option WHERE setting_name='Sending Offer Letter Deadline'");
+	$sending_offer_deadline = mysqli_fetch_assoc($res)['setting_value']; // Deadline for clients to send offer letters
+	$sending_offer_deadline = date("l jS, F Y h:i:s A",$sending_offer_deadline); // Formatted deadline with correct date and time format
 ?>
 <div class="main-content">
 	<h1>Students</h1>
-	<p>List of all the students signed up in this website. <?php if($_SESSION['u_role'] != "Client") {echo '<span id="download_dclearance_file" style="cursor: pointer; text-decoration: underline; color: blue;"><strong>Click Here</strong></span> to download a list of students who do not have D-Clearance.</p>';} ?>
+	<p>List of all the students signed up in this website. <?php if($_SESSION['u_role'] != "Client") {echo '<span id="download_dclearance_file" style="cursor: pointer; text-decoration: underline; color: blue;"><strong>Click Here</strong></span> to download a list of students who do not have D-Clearance.</p>';} else {echo 'The final deadline to send offer letters to students is <span style="text-decoration: underline" class="font_bold">'.$sending_offer_deadline.'</span>';}?>
 	<form id="popup" method="POST" style="display:none;background-color: #fff;box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);border-radius:0 15px 0 0;width:auto;min-width:300px;margin:0;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); -webkit-transform: translate(-50%, -50%);">
 	<img src="images/red_cross_mark.png" id="close_popup" style="position:absolute;top:-3px;right:-3px;width:30px;cursor:pointer;"/>
 	<p style="margin:30px 20px 20px;">Student Name: <input type="text" style="padding:5px 10px;" id="student_name" name="student_name" value="" readonly /></p>
@@ -51,10 +54,14 @@
 				$res = mysqli_query($conn,"SELECT setting_value FROM settings_option WHERE setting_name='Accepting Offer Letter Deadline'");
 				$offer_acceptance_deadline = mysqli_fetch_assoc($res)['setting_value']; // Deadline for students to accept offer letters
 				$offer_acceptance_deadline = date("l jS, F Y h:i:s A",$offer_acceptance_deadline); // Formatted deadline with correct date and time format
+				$res = mysqli_query($conn,"SELECT setting_value FROM settings_option WHERE setting_name='Sending Offer Letter Deadline'");
+				$sending_offer_deadline = mysqli_fetch_assoc($res)['setting_value']; // Deadline for clients to send offer letters
+				$sending_offer_deadline_reached = $sending_offer_deadline < time()? true : false;
+				$sending_offer_deadline = date("l jS, F Y h:i:s A",$sending_offer_deadline); // Formatted deadline with correct date and time format
 				$res = mysqli_query($conn,"SELECT * FROM offer_letter_requests WHERE student_email='".$_POST['email']."' AND project_name='".$_POST['p_name']."'");
 
 				// Check if the number of offer letters sent is within the limit set by DR Coordinator and within the limit of what the vacancy allows.
-				if (($total_sent < $letter_limit) && (mysqli_num_rows($res) < 1) && ($role_limit_reached == 'false') && !$closed) { 
+				if (($total_sent < $letter_limit) && (mysqli_num_rows($res) < 1) && ($role_limit_reached == 'false') && !$closed && !$sending_offer_deadline_reached) { 
 					
 					mysqli_autocommit($conn, FALSE); // Disable auto-commit. 
 					mysqli_query($conn,"UPDATE vacancies SET offer_letters_sent=offer_letters_sent+1 WHERE project_name='".$_POST['p_name']."' AND role_name='".$_POST['p_role']."'")? NULL : $all_query_ok = false;
@@ -105,6 +112,8 @@
 					
 				} else if(mysqli_num_rows($res) > 0) { // Offer letter already sent to the student for this project
 					echo '<div class="verified"><p id="error_txt" style="font-size: 16pt;">An offer letter had already been sent to this student for this project.</p></div>';
+				} else if($sending_offer_deadline_reached) { // Deadline for sending offer letters ended
+					echo '<div class="verified"><p id="error_txt" style="font-size: 16pt;">Deadline for sending offer letters has ended! No more offer letters can be sent.</p></div>';
 				} else if (($role_limit_reached == 'true')) {
 					echo '<div class="verified"><p id="error_txt" style="font-size: 16pt;">Cannot send more offer letters than the number of vacancy you have for each role.</p></div>';
 				} else if ($closed) {
@@ -121,10 +130,10 @@
 			mysqli_query($conn,"INSERT INTO reviewed_students (client_email,student_email,marked_as) VALUES ('".$_SESSION['u_name']."','".$_POST['student_email']."','".$_POST['mark_change']."')");
 		}
 		if(isset($_POST['enroll_project'])) { // Enroll the student to the project selected by DR Coordinator
-			// Delete the row from the marked student if it already exists
-			mysqli_query($conn,"DELETE FROM reviewed_students WHERE student_email='".$_POST['student_email']."'");
 			// Insert the updated information into table
 			mysqli_query($conn,"UPDATE login_info SET project_enrolled='".$_POST['enroll_project']."' WHERE username='".$_POST['student_email']."'");
+			// Insert the updated information into table
+			mysqli_query($conn,"INSERT into offer_letter_requests (student_email,project_name,role_name,status) VALUES ('".$_POST['student_email']."','".$_POST['enroll_project']."','--','Added')");
 		}
 		if(isset($_POST['units_change'])) { // # 'Units registered' has changed for a student
 			// Update information into login_info table
@@ -387,7 +396,7 @@
 	</form>
 	<br />
 	<?php 
-	if ($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") {
+	if ($_SESSION['u_role'] == "Coordinator") {
 		echo '<p>List of students who recently changed the registered number of units. (<span id="download_changed_units_file" style="cursor: pointer; text-decoration: underline; color: blue;"><strong>Download this list</strong></span> | <span id="clear_list" style="cursor: pointer; text-decoration: underline; color: blue;"><strong>Clear this list</strong></span>)</p>
 	<table class="entries">
 		<thead>
