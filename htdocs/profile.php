@@ -273,7 +273,7 @@
 			echo '<th>Username</th>';
 			echo '<td>' . $row['username'] . '</td>';
 			echo '</tr>';
-			if($row['current_student'] == 'Yes') {
+			if($row['current_student'] == 'Yes') { // Display these sections only if student is a current USC student
 				echo '<tr>';
 				echo '<th>Student ID</th>';
 				echo '<td>' . $row['s_id'] . '</td>';
@@ -282,10 +282,13 @@
 				echo '<th>Graduate or Under-graduate?</th>';
 				echo '<td>' . $row['student_level'] . '</td>';
 				echo '</tr>';
-				echo '<tr>';
-				echo '<th>D-Clearance granted?</th>';
-				echo '<td>' . $row['d_clearance'] . '</td>';
-				echo '</tr>';
+				if(!empty($row['n_units']) && $row['n_units'] != "intern") { // Display D-Clearance status only if student has selected units and student is not "Unpaid Intern"
+					echo '<tr>';
+					echo '<th>D-Clearance granted?</th>';
+					echo '<td>' . $row['d_clearance'] . '</td>';
+					echo '</tr>';
+				}
+
 			}
 			echo '<tr>';
 			echo '<th>Are you a current USC student?</th>';
