@@ -69,6 +69,15 @@
 				mysqli_query($conn, "UPDATE settings_option SET setting_value=".$_POST['offer_letter_limit']." WHERE setting_name='Offer Letters Limit'");
 			}
 		}
+		if($_POST['vacancy_application_limit']) { // Limit for the number of vacancy applications students can send
+			$res = mysqli_query($conn, "SELECT * FROM settings_option WHERE setting_name='Vacancy Applications Limit'");
+			
+			if (mysqli_num_rows($res) < 1) {
+				mysqli_query($conn, "INSERT INTO settings_option (setting_name,setting_value) VALUES ('Vacancy Applications Limit',".$_POST['vacancy_application_limit'].")");
+			} else {
+				mysqli_query($conn, "UPDATE settings_option SET setting_value=".$_POST['vacancy_application_limit']." WHERE setting_name='Vacancy Applications Limit'");
+			}
+		}
 		if($_POST['vacancy_application_deadline']) { // Deadline for students to apply for vacancies
 			$year_month = explode('-',$_POST['vacancy_application_deadline']);
 			$year = $year_month[0];
@@ -255,7 +264,7 @@
 					$row = mysqli_fetch_assoc($res);
 					echo 'value="'.intval($row['setting_value']).'"';
 				} else {
-					echo 'value=15';
+					echo 'value=15'; // Default number of offer letters that clients can send if the setting is not set.
 				}
 			?> /></p>
 			<p>Set the deadline for students to apply for project vacancies: <input type="datetime-local" name="vacancy_application_deadline" <?php 
@@ -263,6 +272,15 @@
 				if (mysqli_num_rows($res) > 0) {
 					$row = mysqli_fetch_assoc($res);
 					echo 'value="'.date('Y-m-d\TH:i', intval($row['setting_value'])).'"';
+				}
+			?> /></p>
+			<p>Limit the number of vacancy application requests students can submit: <input type="number" step="1" min="0" max="99" pattern="\d+" name="vacancy_application_limit" <?php 
+				$res = mysqli_query($conn, "SELECT setting_value FROM settings_option WHERE setting_name='Vacancy Applications Limit'");
+				if (mysqli_num_rows($res) > 0) {
+					$row = mysqli_fetch_assoc($res);
+					echo 'value="'.intval($row['setting_value']).'"';
+				} else {
+					echo 'value=5'; // Default number of vacancy applications that students can send if the setting is not set.
 				}
 			?> /></p>
 			<p>Set the deadline for clients to submit student evaluations: <input type="datetime-local" name="eval_submit_deadline" <?php 
