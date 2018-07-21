@@ -32,6 +32,8 @@
 				mysqli_query($conn,"INSERT INTO client_projects (client_email,project_name) VALUES ('".$c_email."','".$project_name."')");
 			}
 			
+			$url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]", PHP_URL_HOST); // Parses the domain of the DR Website
+			$curr_path = dirname((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
 			
 			// Email for inviting client to join
 			$to = $c_email;
@@ -45,9 +47,10 @@
 			<head>
 			</head>
 			<body>
-				<p>Dear '.$f_name.' '.$l_name.',<br />This message is to notify you that you are invited to join the Direct Research project as a client.
-				Please click the link below to sign-up.</p><br />
-				<a href="'.$url.'/client_signup.php?access='.$random_string.'"></a>
+				<p>Dear '.$f_name.',<br />This message is to notify you that the DR Coordinator has invited you to join the CSCI 590 Directed Research course website.
+				Please click the link below to sign-up to the website. <br /><strong>Email Verification Link: </strong><a href="'.$curr_path.'/client_signup.php?access='.$random_string.'">'.$curr_path.'/client_signup.php?access='.$random_string.'</a></p><br />
+				Thanks, <br />
+				CSCI 590 DR Management Team
 			</body>
 			</html>
 			';
@@ -55,7 +58,7 @@
 			// To send HTML mail, the Content-type header must be set
 			$headers[] = 'MIME-Version: 1.0';
 			$headers[] = 'Content-type: text/html; charset=iso-8859-1';
-			$headers[] = 'From: '.$_SESSION['f_name'].' '.$_SESSION['l_name'].' <'.$_SESSION['u_name'].'>'; // Format of the variable ("From: First-Name Last-Name <example@example.com>")
+			$headers[] = 'From: DR CSCI-590 <no-reply@'.$url.'>'; // Format of the variable ("From: DR CSCI-590 <no-reply@domain_name.com>")
 			// Mail it to client
 			mail($to, $subject, $message, implode("\r\n", $headers));
 		}
@@ -93,8 +96,8 @@
 		</form>
 	</div>
 	<p>List of all client invitations which has been sent. But the client hasn't signed up yet to this website.</p>
-	<p>The access code URL sent to the client is of the form: http://<?php echo $url; ?>/client_signup.php?access=[ACCESS CODE]</p>
-	<p><span class="font_bold">Extra Tip:</span> Email the access code directly to the client in case the client is not receiving the invitation email automatically.</p>
+	<p>The access code link sent to the client is in this format: <?php $curr_path = dirname((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"); echo $curr_path; ?>/client_signup.php?access=[ACCESS CODE]</p>
+	<p><span class="font_bold">Extra Tip:</span> Email this access code link directly to the client in case the client is not receiving the invitation email automatically.</p>
 	<table class="entries">
 		<thead>
 			<tr>
