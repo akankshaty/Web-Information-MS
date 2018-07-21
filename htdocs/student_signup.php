@@ -107,11 +107,12 @@
 				
 				$res = mysqli_query($conn,"INSERT INTO email_verifications (f_name,l_name,email,access_token) VALUES ('".$f_name."','".$l_name."','".$email."','".$random_string."')");
 				$url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]", PHP_URL_HOST); // Parses the domain of the DR Website
+				$curr_path = dirname((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
 				// Email for student's email upon sign-up
 				$to = $email;
 
 				// Subject
-				$subject = 'CS590 DR Course Email Verification';
+				$subject = 'CSCI 590 DR Website Email Verification';
 
 				// Message
 				$message = '
@@ -119,8 +120,9 @@
 				<head>
 				</head>
 				<body>
-					<p>Dear '.$f_name.' '.$l_name.',<br /><h2>DR course website Email Verification</h2>Please click the link to complete the sign-up process.</p><br />
-					<a href="'.$url.'/verify.php?access='.$random_string.'"></a>
+					<p>Dear '.$f_name.',<br /><br />Our records indicate that you have recently signed up on the CS590 course website. Please click on the link below to verify your email address and to complete the sign-up process. <br /><strong>Email Verification Link: </strong><a href="'.$curr_path.'/verify.php?access='.$random_string.'">'.$curr_path.'/verify.php?access='.$random_string.'</a></p><br />
+					Thanks, <br />
+					CSCI 590 DR Management Team
 				</body>
 				</html>
 				';
@@ -128,7 +130,7 @@
 				// To send HTML mail, the Content-type header must be set
 				$headers[] = 'MIME-Version: 1.0';
 				$headers[] = 'Content-type: text/html; charset=iso-8859-1';
-				$headers[] = 'From: '.$f_name.' '.$l_name.' <'.$email.'>'; // Format of the variable ("From: First-Name Last-Name <example@example.com>")
+				$headers[] = 'From: DR CSCI-590 <no-reply@'.$url.'>'; // Format of the variable ("From: DR CSCI-590 <no-reply@domain_name.com>")
 				// Mail it to student
 				mail($to, $subject, $message, implode("\r\n", $headers));
 
