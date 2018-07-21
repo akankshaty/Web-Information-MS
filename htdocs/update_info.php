@@ -5,32 +5,82 @@
 		header("Location: index.php");
 	}
 	if (isset($_POST['name'])) {
-		$res = mysqli_query($conn,"SELECT d_clearance FROM login_info WHERE username='".$_POST['name']."'"); // Select the d-clearance status of the student.
+
+		$url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]", PHP_URL_HOST); // Parses the domain of the DR Website
+		$curr_path = dirname((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");	
+
+		$res = mysqli_query($conn,"SELECT f_name,d_clearance FROM login_info WHERE username='".$_POST['name']."'"); // Select the d-clearance status of the student.
 		$row = mysqli_fetch_assoc($res);
 		if($row['d_clearance'] == "Yes") { // Set D-Clearance to "No"
 			mysqli_query($conn,"UPDATE login_info SET d_clearance='No' WHERE username='".$_POST['name']."'");
-			// the message
-			$msg = "Dear DR Student,\n\nThis message is to notify you that the status regarding your D-Clearance for DR course have been modified. Please login to the DR course portal for more information.";
+			
+			// Email for notifying student regarding D-Clearance status update.
+			$to = $_POST['name'];
 
-			// use wordwrap() if lines are longer than 70 characters
-			$msg = wordwrap($msg,70);
+			// Subject
+			$subject = 'DR course D-Clearance notification';
 
-			// send email
-			mail($_POST['name'],"DR course D-Clearance notification",$msg);
+			// Message
+			$message = '
+			<html>
+			<head>
+			</head>
+			<body>
+				<p>Dear '.$row['f_name'].',<br /><br />This message is to notify you that the status regarding your D-Clearance for DR course have been modified by either the Admin or the DR Coordinator. Please login to the CSCI 590 DR course web portal to view the update on your survey page.<br /><br />
+				Thanks, <br />
+				CSCI 590 DR Management Team
+				</p>
+			</body>
+			</html>
+			';
+
+			// To send HTML mail, the Content-type header must be set
+			$headers[] = 'MIME-Version: 1.0';
+			$headers[] = 'Content-type: text/html; charset=iso-8859-1';
+			$headers[] = 'From: DR CSCI-590 <no-reply@'.$url.'>'; // Format of the variable ("From: DR CSCI-590 <no-reply@domain_name.com>")
+			// Mail it to student
+			mail($to, $subject, $message, implode("\r\n", $headers));
+			
 		} else { // Set D-Clearance to "Yes"
 			mysqli_query($conn,"UPDATE login_info SET d_clearance='Yes' WHERE username='".$_POST['name']."'");
-			// the message
-			$msg = "Dear DR Student,\n\nThis message is to notify you that D-Clearance for DR course have been issued to you.";
+			
+			// Email for notifying student regarding D-Clearance status update.
+			$to = $_POST['name'];
 
-			// use wordwrap() if lines are longer than 70 characters
-			$msg = wordwrap($msg,70);
+			// Subject
+			$subject = 'DR course D-Clearance notification';
 
-			// send email
-			mail($_POST['name'],"DR course D-Clearance notification",$msg);
+			// Message
+			$message = '
+			<html>
+			<head>
+			</head>
+			<body>
+				<p>Dear '.$row['f_name'].',<br /><br />This message is to notify you that D-Clearance for DR course have been issued to you by either the Admin or the DR Coordinator. Please login to the CSCI 590 DR course web portal to view the update on your survey page.<br /><br />
+				Thanks, <br />
+				CSCI 590 DR Management Team
+				</p>
+			</body>
+			</html>
+			';
+
+			// To send HTML mail, the Content-type header must be set
+			$headers[] = 'MIME-Version: 1.0';
+			$headers[] = 'Content-type: text/html; charset=iso-8859-1';
+			$headers[] = 'From: DR CSCI-590 <no-reply@'.$url.'>'; // Format of the variable ("From: DR CSCI-590 <no-reply@domain_name.com>")
+			// Mail it to student
+			mail($to, $subject, $message, implode("\r\n", $headers));
+			
 		}
 	} 
 	if (isset($_POST['del_student'])) {
+
+		$url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]", PHP_URL_HOST); // Parses the domain of the DR Website
+		$curr_path = dirname((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
+		
 		$username = explode("-",$_POST['del_student'])[1]; // Parse the username (email address) from POST variable. POST variable format is "delete-[email address]"
+		$res = mysqli_query($conn,"SELECT f_name FROM login_info WHERE username='".$username."'"); // Select the d-clearance status of the student.
+		$row = mysqli_fetch_assoc($res);		
 		mysqli_query($conn, "DELETE FROM login_info WHERE username='".$username."'");
 		mysqli_query($conn, "DELETE FROM changed_units WHERE username='".$username."'");
 		mysqli_query($conn, "DELETE FROM project_preferences WHERE email='".$username."'");
@@ -40,41 +90,112 @@
 		mysqli_query($conn, "DELETE FROM role_preferences WHERE email='".$username."'");
 		mysqli_query($conn, "DELETE FROM student_skills WHERE email='".$username."'");
 		mysqli_query($conn, "DELETE FROM vacancy_applications WHERE student_email='".$username."'");
-			// the message
-			$msg = "Dear DR Student,\n\nThis message is to notify you that your DR course website account has been deleted by one of the DR Coordinators/Admin. You will no longer have access to the course website.";
+		
+			// Email for notifying deletion of account.
+			$to = $username;
 
-			// use wordwrap() if lines are longer than 70 characters
-			$msg = wordwrap($msg,70);
+			// Subject
+			$subject = 'DR course website account deletion notification';
 
-			// send email
-			mail($_POST['name'],"DR course website account deletion notification",$msg);
+			// Message
+			$message = '
+			<html>
+			<head>
+			</head>
+			<body>
+				<p>Dear '.$row['f_name'].',<br /><br />This message is to notify you that your DR course website account has been deleted either by one of the DR Coordinators or by the Admin. You will no longer have access to the DR course website.<br /><br />
+				Thanks, <br />
+				CSCI 590 DR Management Team
+				</p>
+			</body>
+			</html>
+			';
+
+			// To send HTML mail, the Content-type header must be set
+			$headers[] = 'MIME-Version: 1.0';
+			$headers[] = 'Content-type: text/html; charset=iso-8859-1';
+			$headers[] = 'From: DR CSCI-590 <no-reply@'.$url.'>'; // Format of the variable ("From: DR CSCI-590 <no-reply@domain_name.com>")
+			// Mail it to student
+			mail($to, $subject, $message, implode("\r\n", $headers));
+		
 	}
 	if (isset($_POST['del_client'])) {
+		
+		$url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]", PHP_URL_HOST); // Parses the domain of the DR Website
+		$curr_path = dirname((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
+		
 		$username = explode("-*",$_POST['del_client'])[1]; // Parse the username (email address) from POST variable. POST variable format is "delete-*[email address]"
+		$res = mysqli_query($conn,"SELECT f_name FROM login_info WHERE username='".$username."'"); // Select the d-clearance status of the student.
+		$row = mysqli_fetch_assoc($res);		
 		mysqli_query($conn, "DELETE FROM login_info WHERE username='".$username."'");
 		mysqli_query($conn, "DELETE FROM client_projects WHERE client_email='".$username."'");
 		mysqli_query($conn, "DELETE FROM password_requests WHERE email='".$username."'");
 		mysqli_query($conn, "DELETE FROM reviewed_students WHERE client_email='".$username."'");
-			// the message
-			$msg = "Dear DR Client,\n\nThis message is to notify you that your DR course website account has been deleted by one of the DR Coordinators/Admin. You will no longer have access to the course website.";
+		
+			// Email for notifying deletion of account.
+			$to = $username;
 
-			// use wordwrap() if lines are longer than 70 characters
-			$msg = wordwrap($msg,70);
+			// Subject
+			$subject = 'DR course website account deletion notification';
 
-			// send email
-			mail($_POST['name'],"DR course website account deletion notification",$msg);
+			// Message
+			$message = '
+			<html>
+			<head>
+			</head>
+			<body>
+				<p>Dear '.$row['f_name'].',<br /><br />This message is to notify you that your DR course website account has been deleted either by one of the DR Coordinators or by the Admin. You will no longer have access to the DR course website.<br /><br />
+				Thanks, <br />
+				CSCI 590 DR Management Team
+				</p>
+			</body>
+			</html>
+			';
+
+			// To send HTML mail, the Content-type header must be set
+			$headers[] = 'MIME-Version: 1.0';
+			$headers[] = 'Content-type: text/html; charset=iso-8859-1';
+			$headers[] = 'From: DR CSCI-590 <no-reply@'.$url.'>'; // Format of the variable ("From: DR CSCI-590 <no-reply@domain_name.com>")
+			// Mail it to student
+			mail($to, $subject, $message, implode("\r\n", $headers));
+
 	}
 	if (isset($_POST['del_coordinator'])) {
+		
+		$url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]", PHP_URL_HOST); // Parses the domain of the DR Website
+		$curr_path = dirname((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
+		
 		$username = explode("-*",$_POST['del_coordinator'])[1]; // Parse the username (email address) from POST variable. POST variable format is "delete-*[email address]"
+		$res = mysqli_query($conn,"SELECT f_name FROM login_info WHERE username='".$username."'"); // Select the d-clearance status of the student.
+		$row = mysqli_fetch_assoc($res);		
 		mysqli_query($conn, "DELETE FROM login_info WHERE username='".$username."'");
-			// the message
-			$msg = "Dear DR Coordinator,\n\nThis message is to notify you that your DR course website account has been deleted by Admin. You will no longer have access to the course website.";
 
-			// use wordwrap() if lines are longer than 70 characters
-			$msg = wordwrap($msg,70);
+			// Email for notifying deletion of account.
+			$to = $username;
 
-			// send email
-			mail($_POST['name'],"DR course website account deletion notification",$msg);
+			// Subject
+			$subject = 'DR course website account deletion notification';
+
+			// Message
+			$message = '
+			<html>
+			<head>
+			</head>
+			<body>
+				<p>Dear '.$row['f_name'].',<br /><br />This message is to notify you that your DR course website account has been deleted by the Admin. You will no longer have access to the course website. You will no longer have access to the DR course website.<br /><br />
+				Thank you! <br />
+				</p>
+			</body>
+			</html>
+			';
+
+			// To send HTML mail, the Content-type header must be set
+			$headers[] = 'MIME-Version: 1.0';
+			$headers[] = 'Content-type: text/html; charset=iso-8859-1';
+			$headers[] = 'From: DR CSCI-590 <no-reply@'.$url.'>'; // Format of the variable ("From: DR CSCI-590 <no-reply@domain_name.com>")
+			// Mail it to student
+			mail($to, $subject, $message, implode("\r\n", $headers));		
+
 	}
 	if (isset($_POST['apply_vacancy'])) {
 		// Parse the role name and project name of vacancy from POST variable. POST variable format is "apply-*[project name]-*[role name]"
