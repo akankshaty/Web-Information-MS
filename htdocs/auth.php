@@ -1,7 +1,10 @@
 <?php
 $servername = "localhost";
-$username = "root";
-$password = "";
+//$username = "root";
+//$password = "";
+$username = "san3110";
+$password = '7L3w8];)x"%Gn;6#';
+
 $dbname = "web_ims";
 
 // Create connection
