@@ -73,6 +73,7 @@
 	if (isset($_POST['submit'])) {
 		$res = mysqli_query($conn,"SELECT n_units FROM login_info WHERE username='".$_SESSION['u_name']."'");
 		$units = mysqli_fetch_assoc($res)['n_units'];
+		$dclearance = $_POST['n_units'] == "intern"? "Yes" : $_POST['d_clearance'];
 		if (!empty($units) && ($units != $_POST['n_units'])) { // Send email to admin in case a student changes the registered number of units
 			$res = mysqli_query($conn,"SELECT * FROM changed_units WHERE username='".$_SESSION['u_name']."'");
 			if(mysqli_num_rows($res) > 0) {
@@ -110,7 +111,7 @@
 			// mail($to, $subject, $message, implode("\r\n", $headers));
 		}
 		// Update the user's survey form info on login_info db table
-		mysqli_query($conn,"UPDATE login_info SET n_units='".$_POST['n_units']."', d_clearance='".$_POST['d_clearance']."', remote='".$_POST['rem_student']."' WHERE username='".$_SESSION['u_name']."'");
+		mysqli_query($conn,"UPDATE login_info SET n_units='".$_POST['n_units']."', d_clearance='".$dclearance."', remote='".$_POST['rem_student']."' WHERE username='".$_SESSION['u_name']."'");
 
 		// Add the skills in which the student has experience
 		$skill_exp = isset($_POST['skill_exp'])? $_POST['skill_exp'] : NULL;
@@ -210,20 +211,22 @@
 			</table>
 				<p>Are you a graduate or undergraduate student? <span class="font_red">*</span></p><br /><input type="radio" id="grad" name="student_level" disabled value="Graduate Student" <?php if($grad_student) {echo 'checked';} ?> />Graduate Student<br />
 				<input type="radio" id="undergrad" name="student_level" disabled value="Undergraduate Student" <?php if(!$grad_student) {echo 'checked';} ?> />Undergraduate Student<br /><br />
-				<p>Have you received D-Clearance for this course? <span class="font_red">*</span></p><br /><input type="radio" id="d_yes" name="d_clearance" <?php if($deadline_passed OR $_SESSION['u_role'] != 'Student') {echo 'disabled';} ?> value="Yes" <?php if($d_clearance) {echo 'checked';} ?> />Yes<br />
-				<input type="radio" id="d_no" name="d_clearance" <?php if($deadline_passed OR $_SESSION['u_role'] != 'Student') {echo 'disabled';} ?> value="No" <?php if(!$d_clearance) {echo 'checked';} ?> />No<br /><br />
 		</div>
-		<div id="other_students_only"><p>Email Address <span class="font_red">*</span></p><input type="text" name="s_email" disabled placeholder="Email Address" value="<?php echo $email; ?>" /></div>
 		<p>Number of Units <span class="font_red">*</span></p>
 		Each unit equals to 5 hours of work per week (for graduate students)<br /><br />
 		<select id="units" name="n_units" <?php if($deadline_passed OR $_SESSION['u_role'] != 'Student') {echo 'disabled';} ?>>
 			<option value="select">Select Units</option>
 			<option class="usc_students_only" <?php if($n_units == "1") {echo 'selected';} ?> value="1">1 unit</option>
 			<option class="usc_students_only" <?php if($n_units == "2") {echo 'selected';} ?> value="2">2 units</option>
-			<option class="usc_students_only" <?php if($n_units == "3") {echo 'selected';} ?> value="3">3 units</option>
-			<option class="usc_students_only" <?php if($n_units == "4+") {echo 'selected';} ?> value="4+">4+ units (requires permission from client and coordinators)</option>
+			<option class="usc_students_only" <?php if($n_units == "3") {echo 'selected';} ?> value="3">3 units (requires permission from DR coordinators/TA)</option>
+			<option class="usc_students_only" <?php if($n_units == "4+") {echo 'selected';} ?> value="4+">4+ units (requires permission from DR coordinators/TA)</option>
 			<option value="intern" <?php if(!$current_student OR ($n_units == "intern")) {echo 'selected';} ?> >Unpaid Intern</option>
 		</select><br /><br />
+		<div class = "dclearance_toggle" style="display:none;">
+				<p>Have you received D-Clearance for this course? <span class="font_red">*</span></p><br /><input type="radio" id="d_yes" name="d_clearance" <?php if($deadline_passed OR $_SESSION['u_role'] != 'Student') {echo 'disabled';} ?> value="Yes" <?php if($d_clearance) {echo 'checked';} ?> />Yes<br />
+				<input type="radio" id="d_no" name="d_clearance" <?php if($deadline_passed OR $_SESSION['u_role'] != 'Student') {echo 'disabled';} ?> value="No" <?php if(!$d_clearance) {echo 'checked';} ?> />No<br /><br />
+		</div>
+		<div id="other_students_only"><p>Email Address <span class="font_red">*</span></p><input type="text" name="s_email" disabled placeholder="Email Address" value="<?php echo $email; ?>" /></div>
 		<p>Are you a remote student? <span class="font_red">*</span></p>
 		i.e. Live more than 25 miles from USC Main Campus<br /><br />
 		<input type="radio" name="rem_student" <?php if($deadline_passed OR $_SESSION['u_role'] != 'Student') {echo 'disabled';} ?> value="Yes" <?php if($remote) {echo 'checked';} ?> />Yes<br />
@@ -420,12 +423,16 @@
 		?>
 		<br />
 		
-		<div id="last"><p>Resume Uploaded <span class="font_red">*</span></p> <br />
+		<div id="last"><p>Resume Uploaded <span class="font_red">*</span></p>
 		<?php 
 		if (isset($_GET['student']) && $admin_or_coordinator_or_client) {
-			echo '<iframe src="resume_upload_iframe.php?student='.$_GET['student'].'" style="border:none;min-width:600px;min-height:160px;"></iframe>';			
+			echo '<iframe src="resume_upload_iframe.php?student='.$_GET['student'].'" style="border:none;min-width:600px;height:50px;"></iframe>';			
 		} else {
-			echo '<iframe src="resume_upload_iframe.php" style="border:none;min-width:600px;min-height:160px;"></iframe>';
+			if($deadline_passed) {
+				echo '<iframe src="resume_upload_iframe.php" style="border:none;min-width:600px;height:50px;"></iframe>';
+			} else {
+				echo '<iframe src="resume_upload_iframe.php" style="border:none;min-width:600px;min-height:160px;"></iframe>';
+			}
 		}
 
 		?>
@@ -433,7 +440,15 @@
 		<p id="error_txt" style="display:none;"><span class="font_red">* </span>Please enter all required fields.</p>
 		<p id="success_txt" style="display:none;">Survey Submission Successful!</p>		
 		<!--<input style="margin-top:0;" type="submit" name="submit" <?php //if($deadline_passed || $_SESSION['u_role'] != "Student") {echo 'disabled';} ?> value="Submit" />-->
-		<input style="margin-top:0;" type="submit" name="submit" <?php if($deadline_passed){echo 'disabled';} elseif($_SESSION['u_role'] != "Student") {echo 'hidden';} ?> value="Submit" />
+		<?php 
+		if($_SESSION['u_role'] == "Student") {
+			if ($deadline_passed) {
+				echo '<input style="margin-top:0;" type="submit" name="submit" disabled value="Submit" />';
+			} else {
+				echo '<input style="margin-top:0;" type="submit" name="submit" value="Submit" />';
+			}
+		}
+		?>
 	</form>
 </div>
 <script>
@@ -475,6 +490,20 @@ $(document).ready(function(){
 	  } else {
 		$box.prop("checked", false);
 	  }
+	});
+	$("#units").on("change",function(e) {
+		if ($("#units").find('option:selected').val() == "select") {
+			// Check if all fields are entered
+			$("#success_txt").remove();
+			$("#error_txt").remove();
+			$(".dclearance_toggle").fadeOut(700);
+		} else if ($("#units").find('option:selected').val() == "intern") {
+			$(".dclearance_toggle").fadeOut(700);
+		} else {
+			$("#d_yes").prop("checked", false);
+			$("#d_no").prop("checked", true);
+			$(".dclearance_toggle").fadeIn(900);
+		}
 	});
 	$("#survey_form").submit(function(e) {
 		$("#error_txt").hide();
