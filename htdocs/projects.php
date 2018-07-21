@@ -28,9 +28,19 @@
 			mysqli_query($conn,"DELETE FROM project_skills WHERE project_name='".$project_name."' AND skill_type='Required' AND skill_name='".$skill_name."'");
 	}
 	if(isset($_POST['remove_student'])) {
-			// Remove Student from project (Functionality available for DR Coordinators Only)
-			$student_email = explode("-",$_POST['remove_student'])[1];
-			mysqli_query($conn,"UPDATE login_info SET project_enrolled='' WHERE username='".$student_email."'");
+			// Remove Student from project (Functionality available for DR Coordinators Only) and reset grade
+			$student_email = $_POST['remove_student'];
+			mysqli_query($conn,"UPDATE login_info SET project_enrolled='',grade='' WHERE username='".$student_email."'");
+			mysqli_query($conn,"DELETE FROM offer_letter_requests WHERE student_email='".$student_email."' AND (status='Accepted' OR status='Added')");
+	}
+	if(isset($_POST['flag_student'])) {
+			// Flag Student (Functionality available for Clients Only)
+			$student_email = $_POST['flag_student'];
+			mysqli_query($conn,"UPDATE offer_letter_requests SET status='Flagged' WHERE student_email='".$student_email."' AND (status='Accepted' OR status='Added')");
+	}
+	if(isset($_POST['grade_value'])) { // Change the grade of student
+		// Update information into login_info table
+		mysqli_query($conn,"UPDATE login_info SET grade='".$_POST['grade_value']."' WHERE username='".$_POST['student_email']."'");
 	}
 ?>
 <div class="main-content">
@@ -115,7 +125,7 @@
 					$vacancies = mysqli_query($conn, "SELECT * FROM vacancies WHERE project_name='".$row['project_name']."'");
 
 					while($row1 = mysqli_fetch_assoc($vacancies)) { // Prints out each row from vacancies db table results one by one
-						$seat_update = mysqli_query($conn, "SELECT COUNT(status) AS num_seats_filled FROM offer_letter_requests WHERE project_name='".$row['project_name']."' AND role_name='".$row1['role_name']."' AND status='Accepted'");
+						$seat_update = mysqli_query($conn, "SELECT COUNT(status) AS num_seats_filled FROM offer_letter_requests WHERE project_name='".$row['project_name']."' AND role_name='".$row1['role_name']."' AND (status='Accepted' OR status='Added')");
 						$seat_update = mysqli_fetch_assoc($seat_update)['num_seats_filled'];
 						mysqli_query($conn,"UPDATE vacancies SET seats_filled=".$seat_update." WHERE project_name='".$row['project_name']."' AND role_name='".$row1['role_name']."'");
 						$offer_sent_update = mysqli_query($conn, "SELECT COUNT(status) AS num_offer_sent FROM offer_letter_requests WHERE project_name='".$row['project_name']."' AND role_name='".$row1['role_name']."' AND (status='Pending' OR status='Accepted')");
@@ -164,14 +174,15 @@
 						</table><br />';
 			}
 			echo '<p class="font_bold" style="font-size: 14pt;">Students enrolled in this project</p>';
+			if($_SESSION['u_role'] == "Client") {echo '<p>You may flag a student if you want to remove the student from the project. Once a student is flagged, the request is sent to the DR Coordinators and it is up to them to make the final decision.</p>';}
 			echo '<table class="entries">';
 			echo '<th>Name</th>';
 			echo '<th>Email Address</th>';
-			if($_SESSION['u_role'] == "Client") {echo '<th>Role Name</th>';} else {echo '<th>Remove From Project?</th>';}
+			if($_SESSION['u_role'] == "Client") {echo '<th>Role Name</th><th>Grade</th><th>Status</th><th>Flag Student?</th>';} else {echo '<th>Grade</th><th>Status</th><th>Remove From Project?</th>';}
 			if($_SESSION['u_role'] == "Client") {
-				$student_enrolled = mysqli_query($conn,"SELECT li.f_name,li.l_name,li.username,olr.project_name,olr.role_name FROM login_info li LEFT JOIN offer_letter_requests olr ON li.username=olr.student_email WHERE olr.project_name='".$row['project_name']."' AND olr.status='Accepted'");
+				$student_enrolled = mysqli_query($conn,"SELECT li.f_name,li.l_name,li.username,li.grade,li.status,olr.project_name,olr.role_name,olr.status AS olr_status FROM login_info li LEFT JOIN offer_letter_requests olr ON li.username=olr.student_email WHERE olr.project_name='".$row['project_name']."' AND (olr.status='Accepted' OR olr.status='Added' OR olr.status='Flagged')");
 			} else {
-				$student_enrolled = mysqli_query($conn,"SELECT * FROM login_info WHERE role='Student' AND project_enrolled='".$row['project_name']."'");
+				$student_enrolled = mysqli_query($conn,"SELECT f_name,l_name,username,project_enrolled,grade,status FROM login_info WHERE role='Student' AND project_enrolled='".$row['project_name']."'");
 			}
 			if(mysqli_num_rows($student_enrolled) > 0) {
 				while($srow = mysqli_fetch_assoc($student_enrolled)) {
@@ -186,7 +197,56 @@
 							echo '<td>';
 								echo $srow['role_name'];
 							echo '</td>';
+							echo '<td>';
+								echo '<select name="grade" class="grade-*'.$srow['username'].'" style="padding:5px 10px;margin:0 5px;border-radius:5px;" >';
+								if(empty($srow['grade'])) {
+									echo '<option value="" selected>Select Grade</option>';
+									echo '<option value="Passed">Passed</option>';
+									echo '<option value="Failed">Failed</option>';
+								} else if ($srow['grade'] == "Passed") {
+									echo '<option value="">Select Grade</option>';
+									echo '<option value="Passed" selected>Passed</option>';
+									echo '<option value="Failed">Failed</option>';									
+								} else {
+									echo '<option value="">Select Grade</option>';
+									echo '<option value="Passed">Passed</option>';
+									echo '<option value="Failed" selected>Failed</option>';									
+								}
+							echo '</select>';
+							echo '<img src="images/green_check_mark.png" class="grade-*'.$srow['username'].'" style="display:none;width:15px;margin:14px 0 0 4px;"/>';
+							echo '</td>';
+							echo '<td>';
+								echo $srow['status'];
+							echo '</td>';
+							echo '<td>';
+							if ($srow['olr_status'] != 'Flagged') {
+								echo '<img src="images/flag.png" id="flag-'.$srow['username'].'" class="flag" style="width:30px;cursor:pointer;" />';
+							} else {
+								echo '<p class="font_red">Flagged!</p>';
+							}
+							echo '</td>';
 						} else {
+							echo '<td>';
+								echo '<select name="grade" class="grade-*'.$srow['username'].'" style="padding:5px 10px;margin:0 5px;border-radius:5px;" >';
+								if(empty($srow['grade'])) {
+									echo '<option value="" selected>Select Grade</option>';
+									echo '<option value="Passed">Passed</option>';
+									echo '<option value="Failed">Failed</option>';
+								} else if ($srow['grade'] == "Passed") {
+									echo '<option value="">Select Grade</option>';
+									echo '<option value="Passed" selected>Passed</option>';
+									echo '<option value="Failed">Failed</option>';									
+								} else {
+									echo '<option value="">Select Grade</option>';
+									echo '<option value="Passed">Passed</option>';
+									echo '<option value="Failed" selected>Failed</option>';									
+								}
+							echo '</select>';
+							echo '<img src="images/green_check_mark.png" class="grade-*'.$srow['username'].'" style="display:none;width:15px;margin:14px 0 0 4px;"/>';
+							echo '</td>';
+							echo '<td>';
+								echo $srow['status'];
+							echo '</td>';
 							echo '<td>';
 								echo '<img src="images/delete_cross_mark.png" id="delete-'.$srow['username'].'" class="delete" style="width:30px;cursor:pointer;" />';
 							echo '</td>';
@@ -241,7 +301,7 @@ $(document).ready(function() {
 	});
 	$(".delete").click(function(event){
 		if (confirm('Are you sure you want to remove this student from this project?')) {
-			var v_name = event.target.id;
+			var v_name = event.target.id.replace('delete-','');
 			$.ajax({
 				url: "projects.php",
 				type: "POST",
@@ -255,7 +315,36 @@ $(document).ready(function() {
 			return false;
 		}
 	});
+	$(".flag").click(function(event){
+		if (confirm('Are you sure you want to flag this student?')) {
+			var v_name = event.target.id.replace('flag-','');
+			$.ajax({
+				url: "projects.php",
+				type: "POST",
+				data: { "flag_student": v_name },
+				success: function(response){
+					alert("Student was successfully flagged!");
+					window.location.replace("projects.php");
+				}
+			});
+		} else {
+			return false;
+		}
+	});
+	$("select[name=grade]").change(function(e) {
+		var student_email = $(this).attr("class").replace('grade-*','');
+		var grade_value = $("."+$.escapeSelector($(this).attr("class"))+" option:selected").val();
+		$.ajax({
+			url: "projects.php",
+			type: "POST",
+			data: { "grade_value": grade_value, "student_email": student_email},
+			success: function(response){
 
+			}
+			
+		});
+		$("img[class="+$.escapeSelector($(this).attr("class"))+"]").show();
+	});
 	$(document).on("click", "select[class=skills] option", function(e) {
 		$(this).parent().next().append('<div class="skill_select">'+$(this).text()+' <img class="delete_skill" src="images/delete_skill.png" /></div>');
 		$(this).remove();
