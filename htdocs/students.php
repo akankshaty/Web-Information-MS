@@ -69,6 +69,9 @@
 					$all_query_ok? mysqli_commit($conn) : mysqli_rollback($conn); // Rollback if one of the two commands fail
 					mysqli_autocommit($conn, TRUE); // Re-enable auto-commit. 				
 					
+					$url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]", PHP_URL_HOST); // Parses the domain of the DR Website
+					$curr_path = dirname((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
+			
 					if ($all_query_ok) { 
 						// Change values of "Marked As" to "Offer Letter Sent" for that student
 						mysqli_autocommit($conn, FALSE); // Disable auto-commit. 
@@ -90,8 +93,10 @@
 						<head>
 						</head>
 						<body>
-							<p>Dear '.$_POST['student_name'].',<br />This message is to notify you that you have received an offer letter to join the '.$_POST['p_name'].' project as a '.$_POST['p_role'].'.<br />
-							Please note that the deadline to accept offer letters is '.$offer_acceptance_deadline.'. <br />So don\'t forget to accept an offer before this date. Thank you!
+							<p>Dear '.$_POST['student_name'].',<br /><br />This message is to notify you that you have received an offer letter to join the '.$_POST['p_name'].' project as a '.$_POST['p_role'].'.<br />
+							Please note that the deadline to accept offer letters is '.$offer_acceptance_deadline.'. So don\'t forget to accept an offer before this date. <br /><br />
+							Thanks, <br />
+							CSCI 590 DR Management Team
 							</p>
 						</body>
 						</html>
@@ -100,7 +105,7 @@
 						// To send HTML mail, the Content-type header must be set
 						$headers[] = 'MIME-Version: 1.0';
 						$headers[] = 'Content-type: text/html; charset=iso-8859-1';
-						$headers[] = 'From: '.$_SESSION['f_name'].' '.$_SESSION['l_name'].' <'.$_SESSION['u_name'].'>'; // Format of the variable ("From: First-Name Last-Name <example@example.com>")
+						$headers[] = 'From: DR CSCI-590 <no-reply@'.$url.'>'; // Format of the variable ("From: DR CSCI-590 <no-reply@domain_name.com>")
 						// Mail it to student
 						mail($to, $subject, $message, implode("\r\n", $headers));
 						

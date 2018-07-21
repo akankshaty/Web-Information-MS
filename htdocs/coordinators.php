@@ -11,6 +11,10 @@
 		$f_name = mysqli_real_escape_string($conn,$_POST['f_name']);
 		$l_name = mysqli_real_escape_string($conn,$_POST['l_name']);
 		$c_email = mysqli_real_escape_string($conn,$_POST['c_email']);
+		
+		$url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]", PHP_URL_HOST); // Parses the domain of the DR Website
+		$curr_path = dirname((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
+		
 		$res = mysqli_query($conn,"SELECT * FROM login_info WHERE username='".$c_email."'");
 		if(mysqli_num_rows($res) < 1) { // Check if user already exist in database, add invitation if not.
 			$string_not_unique = true;
@@ -41,9 +45,10 @@
 			<head>
 			</head>
 			<body>
-				<p>Dear '.$f_name.' '.$l_name.',<br />This message is to notify you that you are invited to join the Direct Research course website as a DR Coordinator.
-				Please click the link below to sign-up.</p><br />
-				<a href="'.$url.'/coordinator_signup.php?access='.$random_string.'"></a>
+				<p>Dear '.$f_name.',<br /><br />This message is to notify you that you are invited to join the Direct Research course website as a DR Coordinator.
+				Please click on the link below to sign-up to the website.</p>
+				<a href="'.$curr_path.'/coordinator_signup.php?access='.$random_string.'">'.$curr_path.'/coordinator_signup.php?access='.$random_string.'</a><br /><br />
+				Thank you!
 			</body>
 			</html>
 			';
@@ -51,7 +56,7 @@
 			// To send HTML mail, the Content-type header must be set
 			$headers[] = 'MIME-Version: 1.0';
 			$headers[] = 'Content-type: text/html; charset=iso-8859-1';
-			$headers[] = 'From: '.$_SESSION['f_name'].' '.$_SESSION['l_name'].' <'.$_SESSION['u_name'].'>'; // Format of the variable ("From: First-Name Last-Name <example@example.com>")
+			$headers[] = 'From: DR CSCI-590 <no-reply@'.$url.'>'; // Format of the variable ("From: DR CSCI-590 <no-reply@domain_name.com>")
 			// Mail it to coordinator
 			mail($to, $subject, $message, implode("\r\n", $headers));
 		}

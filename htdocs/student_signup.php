@@ -88,52 +88,52 @@
 			} else { // Username does not exist, proceed to send email verification
 				$res = mysqli_query($conn, "INSERT INTO login_info (f_name,l_name,username,password,s_id,current_student,student_level,survey,d_clearance,status,verified_email,role) VALUES ('".$f_name."','".$l_name."','".$u_name."','".$hash_password."','".$s_id."','".$curr_student."','".$student_level."','No','".$d_clearance."','Active','No','Student')");
 				if ($res) {
+					do { // Loop until the created random string is unique (random string which is not found in database already)
+						$string_not_unique = true; 
+						$random_string = "";
+						$chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+						for($i=0;$i<=6;$i++) {
+							$random_string.=substr($chars,rand(0,strlen($chars)),1); // Generating a random string as a form of access code to verify email
+						}
+						$res = mysqli_query($conn,"SELECT * FROM email_verifications WHERE access_token='".$random_string."'");
+						if (mysqli_num_rows($res) < 1) { // Generated string is unique
+							$string_not_unique = false; 
+						}
+					} while($string_not_unique);
+					
+					$res = mysqli_query($conn,"INSERT INTO email_verifications (f_name,l_name,email,access_token) VALUES ('".$f_name."','".$l_name."','".$email."','".$random_string."')");
+					$url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]", PHP_URL_HOST); // Parses the domain of the DR Website
+					$curr_path = dirname((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
+					// Email for student's email upon sign-up
+					$to = $email;
+
+					// Subject
+					$subject = 'CSCI 590 DR Website Email Verification';
+
+					// Message
+					$message = '
+					<html>
+					<head>
+					</head>
+					<body>
+						<p>Dear '.$f_name.',<br /><br />Our records indicate that you have recently signed up on the CS590 DR course website. Please click on the link below to verify your email address and to complete the sign-up process. <br /><strong>Email Verification Link: </strong><a href="'.$curr_path.'/verify.php?access='.$random_string.'">'.$curr_path.'/verify.php?access='.$random_string.'</a></p><br />
+						Thanks, <br />
+						CSCI 590 DR Management Team
+					</body>
+					</html>
+					';
+
+					// To send HTML mail, the Content-type header must be set
+					$headers[] = 'MIME-Version: 1.0';
+					$headers[] = 'Content-type: text/html; charset=iso-8859-1';
+					$headers[] = 'From: DR CSCI-590 <no-reply@'.$url.'>'; // Format of the variable ("From: DR CSCI-590 <no-reply@domain_name.com>")
+					// Mail it to student
+					mail($to, $subject, $message, implode("\r\n", $headers));
+
 					echo '<script>$(document).ready(function(){$("#success_txt").text("Registration Successful! A verification email has been sent to you!");$("#success_txt").show();});</script>';
 				} else {
 					echo '<script>$(document).ready(function(){$("#error_txt").text("Error! Registration Failed! Please try again later.");$("#error_txt").show();});</script>';
 				}
-				do { // Loop until the created random string is unique (random string which is not found in database already)
-					$string_not_unique = true; 
-					$random_string = "";
-					$chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-					for($i=0;$i<=6;$i++) {
-						$random_string.=substr($chars,rand(0,strlen($chars)),1); // Generating a random string as a form of access code to verify email
-					}
-					$res = mysqli_query($conn,"SELECT * FROM email_verifications WHERE access_token='".$random_string."'");
-					if (mysqli_num_rows($res) < 1) { // Generated string is unique
-						$string_not_unique = false; 
-					}
-				} while($string_not_unique);
-				
-				$res = mysqli_query($conn,"INSERT INTO email_verifications (f_name,l_name,email,access_token) VALUES ('".$f_name."','".$l_name."','".$email."','".$random_string."')");
-				$url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]", PHP_URL_HOST); // Parses the domain of the DR Website
-				$curr_path = dirname((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
-				// Email for student's email upon sign-up
-				$to = $email;
-
-				// Subject
-				$subject = 'CSCI 590 DR Website Email Verification';
-
-				// Message
-				$message = '
-				<html>
-				<head>
-				</head>
-				<body>
-					<p>Dear '.$f_name.',<br /><br />Our records indicate that you have recently signed up on the CS590 course website. Please click on the link below to verify your email address and to complete the sign-up process. <br /><strong>Email Verification Link: </strong><a href="'.$curr_path.'/verify.php?access='.$random_string.'">'.$curr_path.'/verify.php?access='.$random_string.'</a></p><br />
-					Thanks, <br />
-					CSCI 590 DR Management Team
-				</body>
-				</html>
-				';
-
-				// To send HTML mail, the Content-type header must be set
-				$headers[] = 'MIME-Version: 1.0';
-				$headers[] = 'Content-type: text/html; charset=iso-8859-1';
-				$headers[] = 'From: DR CSCI-590 <no-reply@'.$url.'>'; // Format of the variable ("From: DR CSCI-590 <no-reply@domain_name.com>")
-				// Mail it to student
-				mail($to, $subject, $message, implode("\r\n", $headers));
-
 				
 			}
 		}
