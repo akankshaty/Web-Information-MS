@@ -21,8 +21,7 @@ $url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HT
 <body>
 	<div class="top_heading">
 		<img id="usc_logo" src="images/usc_logo.png" />
-	</div>
-		<?php 
+	</div><?php 
 		$res = mysqli_query($conn,"SELECT * FROM login_info WHERE username='".$_SESSION['u_name']."'");
 		$row = mysqli_fetch_assoc($res);
 		if (isset($_SESSION['u_role'])) {
@@ -78,6 +77,4 @@ $url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HT
 				echo '</div>';
 			echo '</div>';
 		}
-		?>
-
-	
+?>
