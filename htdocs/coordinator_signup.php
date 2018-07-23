@@ -84,13 +84,14 @@
 			$email = mysqli_real_escape_string($conn, trim($email)); // Email address
 			$u_name = $email; // Set username = email address
 			$password = mysqli_real_escape_string($conn, $_POST['password']); // Password
+			$hash_password = password_hash($password,PASSWORD_BCRYPT); //Hash Password
 			$_SESSION['form_password'] = $password;
 			$sql = "SELECT * FROM login_info WHERE username='".$username."'";
 			$user_check = mysqli_query($conn,$sql);
 			if ($user_check && mysqli_num_rows($user_check) > 0) { // Username already exist
 				echo '<script>$(document).ready(function(){$("#last").after("<p id="error_txt">Username already exist. You have probably signed-up before.</p>");$("#error_txt").show();});</script>';
 			} else { // Username does not exist, proceed to coordinator registration
-				$res = mysqli_query($conn, "INSERT INTO login_info (f_name,l_name,username,password,verified_email,role) VALUES ('".$f_name."','".$l_name."','".$u_name."','".$password."','Yes','Coordinator')");
+				$res = mysqli_query($conn, "INSERT INTO login_info (f_name,l_name,username,password,verified_email,role) VALUES ('".$f_name."','".$l_name."','".$u_name."','".$hash_password."','Yes','Coordinator')");
 				if ($res) {
 					header("Location: ?access=".$_GET['access']."&registration=success");
 				} else {
