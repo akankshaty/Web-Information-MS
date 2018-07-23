@@ -127,7 +127,11 @@
 						while($p_managed = mysqli_fetch_assoc($project_managed)) {
 							$p_array[] = $p_managed['project_name'];
 						}
-						echo implode(", ",$p_array);
+						if (!empty($p_array)) {
+							echo implode(", ",$p_array);
+						} else {
+							echo "No projects.";
+						}
 						echo '</td>';
 						echo '<td>';
 						echo $row['access_token'];
