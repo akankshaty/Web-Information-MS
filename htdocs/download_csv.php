@@ -1,4 +1,5 @@
 <?php 
+	date_default_timezone_set('America/Los_Angeles');
 	session_start();
 	include('auth.php');
 	if ($_SESSION['u_role'] != "Coordinator" AND $_SESSION['u_role'] != "Admin" AND $_SESSION['u_role'] != "Client") {
@@ -9,6 +10,14 @@
 	$f = fopen('php://output', 'w');
 	$res = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.d_clearance,cu.username,cu.from_units,cu.to_units,cu.timestamp FROM changed_units cu LEFT JOIN login_info li ON li.username=cu.username WHERE li.role='Student' AND li.status='Active'");
 	if(mysqli_num_rows($res) > 0) {
+		// output headers so that the file is downloaded rather than displayed
+		header('Content-type: text/csv');
+		header('Content-Disposition: attachment; filename="student_changed_units.csv"');
+		 
+		// do not cache the file
+		header('Pragma: no-cache');
+		header('Expires: 0');		
+		
 		fputcsv($f, array('Name', 'Email Address', 'Units Changed From', 'Units Changed To'));
 		while($row = mysqli_fetch_assoc($res)) {
 			$name = $row['f_name']." ".$row['l_name'];
@@ -41,13 +50,7 @@
 			fputcsv($f, array($name, $row['username'], $from, $to));
 		}
 
-		// output headers so that the file is downloaded rather than displayed
-		header('Content-type: text/csv');
-		header('Content-Disposition: attachment; filename="student_changed_units.csv"');
-		 
-		// do not cache the file
-		header('Pragma: no-cache');
-		header('Expires: 0');			 
+	 
 		fclose($f);
 	} else {
 		echo "false"; // Outputs false if there are no rows. The variable is used during AJAX call in students.php.

@@ -11,7 +11,7 @@
 ?>
 <div class="main-content">
 	<h1>Students</h1>
-	<p>List of all the students signed up in this website. <?php if($_SESSION['u_role'] != "Client") {echo '<span id="download_dclearance_file" style="cursor: pointer; text-decoration: underline; color: blue;"><strong>Click Here</strong></span> to download a list of students who do not have D-Clearance.</p>';} else {echo 'The final deadline to send offer letters to students is <span style="text-decoration: underline" class="font_bold">'.$sending_offer_deadline.'</span>';}?>
+	<p>List of all the students signed up in this website. <?php if($_SESSION['u_role'] != "Client") {echo '<span id="download_dclearance_file" style="cursor: pointer; text-decoration: underline; color: blue;"><strong>Click Here</strong></span> to download a list of students (USC students and those students who are not enrolled as "Unpaid Intern") who do not have D-Clearance.</p>';} else {echo 'The final deadline to send offer letters to students is <span style="text-decoration: underline" class="font_bold">'.$sending_offer_deadline.'</span>';}?>
 	<form id="popup" method="POST" style="display:none;background-color: #fff;box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);border-radius:0 15px 0 0;width:auto;min-width:300px;margin:0;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); -webkit-transform: translate(-50%, -50%);">
 	<img src="images/red_cross_mark.png" id="close_popup" style="position:absolute;top:-3px;right:-3px;width:30px;cursor:pointer;"/>
 	<p style="margin:30px 20px 20px;">Student Name: <input type="text" style="padding:5px 10px;" id="student_name" name="student_name" value="" readonly /></p>
@@ -654,7 +654,7 @@ $(document).ready(function(){
 				if (response.substring(0,5) != "false") {
 					window.location.replace("download_no_dclearance_list.php");
 				} else {
-					alert("Download failed! All students have D-Clearance.");
+					alert("Download failed! All students (USC students and those who are not enrolled as 'Unpaid Intern') have D-Clearance.");
 				}
 			}
 		});
