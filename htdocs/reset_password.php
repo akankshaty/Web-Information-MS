@@ -25,7 +25,7 @@
 					$res = mysqli_query($conn, "SELECT * FROM password_requests WHERE access_token='".$_GET['access']."'");
 					if (mysqli_num_rows($res) < 1) { // Access token is invalid
 						echo '<div class="verified"><div id="error_txt"><img src="images/red_cross_mark.png" />Invalid access token ID! Heading back to homepage...</div></div>';
-						header( "refresh:5;url=index.php" ); // Go to login page in 5 seconds.
+						echo "<meta http-equiv='refresh' content='5;url=index.php'>"; // Go to login page in 5 seconds.
 					} else {
 						echo '<div class="login">
 									<div id = "login_logo">
