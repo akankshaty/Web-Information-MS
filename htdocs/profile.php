@@ -40,12 +40,12 @@
 			FROM login_info s , client_projects p, login_info c
 			WHERE 
 			(s.project_enrolled = p.project_name) and
-			p.client_email=c.username and s.project_enrolled is not null and not s.project_enrolled='' and s.grade='' and s.status='Active' and s.role='Student' order by s.project_enrolled");
+			p.client_email=c.username and s.project_enrolled is not null and not s.project_enrolled='' and (s.grade='' or s.grade is null) and s.status='Active' and s.role='Student' order by s.project_enrolled");
 			// query for students under DR
 			$res1 = mysqli_query($conn,"SELECT s.f_name as sfname,s.l_name as slname,s.username,s.project_enrolled,s.grade,s.status
 			FROM login_info s
 			WHERE 
-			s.project_enrolled is not null and not s.project_enrolled='' and s.grade='' and s.role='Student' and s.status='Active' and s.project_enrolled not in (select p.project_name from client_projects p) order by s.project_enrolled");
+			s.project_enrolled is not null and not s.project_enrolled='' and (s.grade='' or s.grade is null) and s.role='Student' and s.status='Active' and s.project_enrolled not in (select p.project_name from client_projects p) order by s.project_enrolled");
 		} else {
 			// query for students under client
 			$res = mysqli_query($conn,"SELECT s.f_name as sfname,s.l_name as slname,s.username,s.project_enrolled,s.grade,s.status, c.f_name as cfname, c.l_name as clname
@@ -159,7 +159,7 @@
 			if (isset($_GET["filterBy"]) && ($_GET["filterBy"] == "not_graded")) {
 				echo '<option value="not_graded" selected>are active and enrolled in project but have not been graded</option>';
 			} else {
-				echo '<option value="not_graded">is active and enrolled in project but have not been graded</option>';				
+				echo '<option value="not_graded">are active and enrolled in project but have not been graded</option>';				
 			}
 			
 	echo '</select></p>';
