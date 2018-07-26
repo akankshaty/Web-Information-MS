@@ -74,9 +74,9 @@
 		<input type="submit" value="Add Coordinator" name="add_coordinator" />
 		</form>
 	</div>
-	<p>List of all coordinator invitations which has been sent. But the coordinator hasn't signed up yet to this website.</p>
-	<p>The access code URL sent to the coordinator is of the form: http://<?php echo $url; ?>/coordinator_signup.php?access=[ACCESS CODE]</p>
-	<p><span class="font_bold">Extra Tip:</span> Email the access code directly to the coordinator in case the coordinator is not receiving the invitation email automatically.</p>
+	<p>List of all client invitations which has been sent. But the client hasn't signed up yet to this website.</p>
+	<p>The access code link sent to the client is in this format: <?php $curr_path = dirname((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"); echo $curr_path; ?>/client_signup.php?access=[ACCESS CODE]</p>
+	<p><span class="font_bold">Extra Tip:</span> Email this access code link directly to the client in case the client is not receiving the invitation email automatically.</p>
 	<table class="entries">
 		<thead>
 			<tr>

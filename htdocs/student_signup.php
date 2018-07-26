@@ -4,6 +4,8 @@
 	if (isset($_SESSION['u_name'])) {
 		header('Location: profile.php'); // Redirect to user profile page when user is logged-in already
 	}
+	ini_set('sendmail_from', 'no-reply@hercules.usc.edu');
+	
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -129,7 +131,7 @@
 					$headers[] = 'From: DR CSCI-590 <no-reply@'.$url.'>'; // Format of the variable ("From: DR CSCI-590 <no-reply@domain_name.com>")
 					// Mail it to student
 					mail($to, $subject, $message, implode("\r\n", $headers));
-
+					
 					echo '<script>$(document).ready(function(){$("#success_txt").text("Registration Successful! A verification email has been sent to you!");$("#success_txt").show();});</script>';
 				} else {
 					echo '<script>$(document).ready(function(){$("#error_txt").text("Error! Registration Failed! Please try again later.");$("#error_txt").show();});</script>';

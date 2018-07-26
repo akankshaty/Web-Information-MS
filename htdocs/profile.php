@@ -61,7 +61,7 @@
 		}
 		
 		echo '<div class="main-content">'; 
-		echo '<h1>Home</h1>'; 
+		echo '<h1>Welcome '.$_SESSION['f_name'].' '.$_SESSION['l_name'].'</h1>'; 
 		echo '<h2>Flagged Students</h2>';
 		echo '<p>List of all students who were flagged by client. You can either approve the request or decline it. If approved, the student will be removed from the project. If not, then they will stay in their current project.</p>';
 		echo '<table class="entries">';

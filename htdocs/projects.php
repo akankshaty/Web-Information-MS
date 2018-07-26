@@ -178,12 +178,11 @@
 			echo '<table class="entries">';
 			echo '<th>Name</th>';
 			echo '<th>Email Address</th>';
-			echo '<th># of Units</th>';
 			if($_SESSION['u_role'] == "Client") {echo '<th>Role Name</th><th>Grade</th><th>Status</th><th>Flag Student?</th>';} else {echo '<th>Grade</th><th>Status</th><th>Remove From Project?</th>';}
 			if($_SESSION['u_role'] == "Client") {
-				$student_enrolled = mysqli_query($conn,"SELECT li.f_name,li.l_name,li.username,li.n_units,li.grade,li.status,olr.project_name,olr.role_name,olr.status AS olr_status FROM login_info li LEFT JOIN offer_letter_requests olr ON li.username=olr.student_email WHERE olr.project_name='".$row['project_name']."' AND (olr.status='Accepted' OR olr.status='Added' OR olr.status='Flagged')");
+				$student_enrolled = mysqli_query($conn,"SELECT li.f_name,li.l_name,li.username,li.grade,li.status,olr.project_name,olr.role_name,olr.status AS olr_status FROM login_info li LEFT JOIN offer_letter_requests olr ON li.username=olr.student_email WHERE olr.project_name='".$row['project_name']."' AND (olr.status='Accepted' OR olr.status='Added' OR olr.status='Flagged')");
 			} else {
-				$student_enrolled = mysqli_query($conn,"SELECT f_name,l_name,username,n_units,project_enrolled,grade,status FROM login_info WHERE role='Student' AND project_enrolled='".$row['project_name']."'");
+				$student_enrolled = mysqli_query($conn,"SELECT f_name,l_name,username,project_enrolled,grade,status FROM login_info WHERE role='Student' AND project_enrolled='".$row['project_name']."'");
 			}
 			if(mysqli_num_rows($student_enrolled) > 0) {
 				while($srow = mysqli_fetch_assoc($student_enrolled)) {
@@ -193,15 +192,6 @@
 						echo '</td>';
 						echo '<td>';
 							echo $srow['username'];
-						echo '</td>';
-						echo '<td>';
-							if(empty($srow['n_units'])) {
-								echo '-';
-							} else if ($srow['n_units'] == "intern") {
-								echo 'Unpaid Intern';
-							} else {
-								echo $srow['n_units'];
-							}
 						echo '</td>';
 						if($_SESSION['u_role'] == "Client") {
 							echo '<td>';

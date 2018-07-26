@@ -85,7 +85,7 @@
 			$u_name = $email; // Set username = email address
 			$password = mysqli_real_escape_string($conn, $_POST['password']); // Password
 			$hash_password = password_hash($password,PASSWORD_BCRYPT); //Hash Password
-			$_SESSION['form_password'] = $hash_password;
+			$_SESSION['form_password'] = $password;
 			$sql = "SELECT * FROM login_info WHERE username='".$username."'";
 			$user_check = mysqli_query($conn,$sql);
 			if ($user_check && mysqli_num_rows($user_check) > 0) { // Username already exist
@@ -98,6 +98,9 @@
 					header("Location: ?access=".$_GET['access']."&registration=failed");
 				}
 			}
+		}
+		if (isset($_POST['homepage'])) {
+			echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 		}
 		if (isset($_GET['registration']) && isset($_GET['access']) && $access_token_valid) {
 			if($_GET['registration'] == "success") {
@@ -119,7 +122,7 @@
 						</tr>
 					</table>
 					<p id="success_txt">Registration Successful!</p>
-					<input type="submit" name="signup" value="Sign Up" /><br /><br />
+					<input type="submit" name="homepage" value="Back to Login" /><br /><br />
 					</form>
 					</div>
 				</div>';

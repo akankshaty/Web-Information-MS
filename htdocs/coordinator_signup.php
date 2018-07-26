@@ -99,6 +99,9 @@
 				}
 			}
 		}
+		if (isset($_POST['homepage'])) {
+			echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+		}
 		if (isset($_GET['registration']) && isset($_GET['access']) && $access_token_valid) {
 			if($_GET['registration'] == "success") {
 				echo '<form id="survey_form" action="" method="POST">
@@ -119,7 +122,7 @@
 						</tr>
 					</table>
 					<p id="success_txt">Registration Successful!</p>
-					<input type="submit" name="signup" value="Sign Up" /><br /><br />
+					<input type="submit" name="homepage" value="Back to Login" /><br /><br />
 					</form>
 					</div>
 				</div>';
