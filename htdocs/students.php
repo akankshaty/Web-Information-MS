@@ -301,9 +301,12 @@
 						if ($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") {
 							echo '<td>';
 							echo '<label class="switch">';
-								if ($row['d_clearance'] == "Yes") {
+								if ($row['d_clearance'] == "Yes" || $row['n_units'] == "intern") {
 									echo '<input type="checkbox" id="'.$row['username'].'" checked>';
-								} else {
+								} //elseif ($row['n_units'] == "intern") {
+									//echo '<input type="checkbox" id="'.$row['username'].'" style="display:none;">';
+								//} 
+								else {
 									echo '<input type="checkbox" id="'.$row['username'].'">';
 								}
 								echo '<span class="slider round"></span>';
@@ -614,6 +617,28 @@ $(document).ready(function(){
 			
 		});
 		$("img[class="+$.escapeSelector($(this).attr("class"))+"]").show();
+
+		//var sel_id = e.target.class.split("*")[1];
+		//var sel_val = e.target.value;
+
+		/*$("input[type=checkbox]").each(function() {
+			if($(this).attr(id) == student_email) {
+				if(units_value == 'intern') {
+					// TODO: set the dclearance toggle switch to true (green)
+					$(this).prop('checked',true);
+				} else {
+					// TODO: set the toggle switch to false (red)
+					$(this).prop('checked',false);
+				}
+			}
+		});*/
+		/*var id = "input[type=checkbox] #" + sel_id;
+		if(sel_val == "intern") {
+			$(id).prop('checked',true);
+		} else {
+			$(id).prop('checked',false);
+		}*/
+		location.reload();
 	});
 	$("#clear_list").click(function(e) {
 		if (confirm('Are you sure you want to clear the list of students who changed the # of units? This action cannot be undone.')) {
