@@ -146,6 +146,62 @@
 			mysqli_query($conn, "DELETE FROM client_projects WHERE client_projects.project_name NOT IN (SELECT projects.project_name FROM projects)");
 		}
 	}
+	if(isset($_POST['add_client'])) { // Adding new client
+		$f_name = mysqli_real_escape_string($conn,$_POST['f_name']);
+		$l_name = mysqli_real_escape_string($conn,$_POST['l_name']);
+		$c_email = mysqli_real_escape_string($conn,$_POST['c_email']);
+		$res = mysqli_query($conn,"SELECT * FROM login_info WHERE username='".$c_email."'");
+		if(mysqli_num_rows($res) < 1) { // Check if user already exist in database, add invitation if not.
+			$string_not_unique = true;
+			do { // Loop until the created random string is unique (random string which is not found in database already)
+				$random_string = "";
+				$chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+				for($i=0;$i<=6;$i++) {
+					$random_string.=substr($chars,rand(0,strlen($chars)),1); // Generating a random string as a form of access code to email users
+				}
+				$res = mysqli_query($conn,"SELECT * FROM client_invitations WHERE access_token='".$random_string."'");
+				if (mysqli_num_rows($res) < 1) { // Generated string is unique
+					$string_not_unique = false; 
+				}
+			} while($string_not_unique);
+			// Insert the values into client_invitations table
+			mysqli_query($conn,"INSERT INTO client_invitations (f_name,l_name,email,access_token) VALUES ('".$f_name."','".$l_name."','".$c_email."','".$random_string."')");
+			// Insert projects owned by clients into client_projects table
+			foreach($_POST['projects'] as $project_name) {
+				mysqli_query($conn,"INSERT INTO client_projects (client_email,project_name) VALUES ('".$c_email."','".$project_name."')");
+			}
+			
+			$url = parse_url((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]", PHP_URL_HOST); // Parses the domain of the DR Website
+			$curr_path = dirname((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
+			
+			// Email for inviting client to join
+			$to = $c_email;
+
+			// Subject
+			$subject = 'CSCI 590 DR Course Client Invitation';
+
+			// Message
+			$message = '
+			<html>
+			<head>
+			</head>
+			<body>
+				<p>Dear '.$f_name.',<br /><br />This message is to notify you that the DR Coordinator has invited you to join the CSCI 590 Directed Research course website.
+				Please click on the link below to sign-up to the website. <br /><strong>Email Verification Link: </strong><a href="'.$curr_path.'/client_signup.php?access='.$random_string.'">'.$curr_path.'/client_signup.php?access='.$random_string.'</a></p><br />
+				Thanks, <br />
+				CSCI 590 DR Management Team
+			</body>
+			</html>
+			';
+
+			// To send HTML mail, the Content-type header must be set
+			$headers[] = 'MIME-Version: 1.0';
+			$headers[] = 'Content-type: text/html; charset=iso-8859-1';
+			$headers[] = 'From: DR CSCI-590 <no-reply@'.$url.'>'; // Format of the variable ("From: DR CSCI-590 <no-reply@domain_name.com>")
+			// Mail it to client
+			mail($to, $subject, $message, implode("\r\n", $headers));
+		}
+	}
 	if (isset($_POST['current_semester']) && !empty($_POST['current_semester'])) {
 		$res = mysqli_query($conn,"SELECT * FROM settings_option WHERE setting_name='Current Semester'");
 		if (mysqli_num_rows($res) < 1) {
@@ -411,6 +467,94 @@
 			?>
 				</thead>
 			</table>
+
+			<!-- Add Client Section -->
+
+			<h3>Clients (<a id="toggle_client_form" href="javascript:void(0)">Add Client?</a>)</h3>
+
+			<div class="survey-client" style="width: 300px; overflow: auto;text-align: center;">
+				<form id="new_client" action="" method="POST">
+				<div><p>Client's First Name <span class="font_red">*</span></p><input type="text" name="f_name" placeholder="First Name" /></div>
+				<div><p>Client's Last Name <span class="font_red">*</span></p><input type="text" name="l_name" placeholder="Last Name" /></div>
+				<div><p>Client's Email Address <span class="font_red">*</span></p><input type="text" name="c_email" placeholder="Email Address" /></div>
+				<div><p>Projects managed by Client</p>
+					<?php 
+						$res = mysqli_query($conn,"SELECT project_name FROM projects");
+						$count = 1;
+						if(mysqli_num_rows($res) > 0) {
+							echo '<div style="text-align: left;">';
+							while($row = mysqli_fetch_assoc($res)) {
+								echo '<input type="checkbox" name="projects[]" value="'.trim($row['project_name']).'" />';
+								echo trim($row['project_name']).'<br />';
+								$count++;
+							}
+							echo '</div>';
+						} else {
+							echo 'No projects added.';
+						}
+
+						
+					?>
+					
+				</div>
+				<div class="error"><p id="error_txt"></p></div>
+				<input type="submit" value="Add Client" name="add_client" />
+				</form>
+			</div>
+
+			<h4>List of all client invitations which has been sent. But the client hasn't signed up yet to this website.</h4>
+			<h4>The access code link sent to the client is in this format: <?php $curr_path = dirname((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"); echo $curr_path; ?>/client_signup.php?access=[ACCESS CODE]</h4>
+			<h4><span class="font_bold">Extra Tip:</span> Email this access code link directly to the client in case the client is not receiving the invitation email automatically.</h4>
+			<table class="entries">
+				<thead>
+				<tr>
+					<th>First Name</th>
+					<th>Last Name</th>
+					<th>Email Address</th>
+					<th>Projects Managed</th>
+					<th>Access Code</th>
+				</tr>
+				<?php 
+					// Get a list of all client invitations sent by the DR Coordinator
+					$clients = mysqli_query($conn, "SELECT f_name,l_name,email,access_token FROM client_invitations");
+					while($row = mysqli_fetch_assoc($clients)) { // Prints out each row from client_invitations db table results one by one
+						$project_managed = mysqli_query($conn, "SELECT * FROM client_projects WHERE client_email='".$row['email']."'");
+						echo '<tr>';
+							echo '<td>';
+							echo $row['f_name'];
+							echo '</td>';
+							echo '<td>';
+							echo $row['l_name'];
+							echo '</td>';
+							echo '<td>';
+							echo $row['email'];
+							echo '</td>';
+							echo '<td>';
+							$p_array = array();
+							while($p_managed = mysqli_fetch_assoc($project_managed)) {
+								$p_array[] = $p_managed['project_name'];
+							}
+							if (!empty($p_array)) {
+								echo implode(", ",$p_array);
+							} else {
+								echo "No projects.";
+							}
+							echo '</td>';
+							echo '<td>';
+							echo $row['access_token'];
+							echo '</td>';
+						echo '</tr>';
+					}
+					if (mysqli_num_rows($clients) < 1) { // If no client invitations is sent
+						echo '<tr>';
+							echo '<td colspan="10">';
+							echo 'No client invitations sent.';
+							echo '</td>';
+						echo '</tr>';
+					}
+				?>
+				</thead>
+			</table><br />
 			
 			<!----- Semester Reset Section ----->
 			
@@ -436,6 +580,9 @@
 $("#skill_setting").hide();
 $("#role_setting").hide();
 $("#project_setting").hide();
+
+$(".error").hide();
+$(".survey-client").hide();
 $(document).ready(function(){
 	$("#edit_skills").on("click", function() {
 		$("#skill_setting").toggle();
@@ -446,6 +593,18 @@ $(document).ready(function(){
 	$("#edit_projects").on("click", function() {
 		$("#project_setting").toggle();
 	});
+
+	$("#toggle_client_form").on("click", function() {
+		$(".survey-client").toggle();
+	});
+	$("#new_client").submit(function(e) {
+		if (!$("input[name=f_name]").val() || !$("input[name=l_name]").val() || !$("input[name=c_email]").val()) {
+			$("#error_txt").text("Please enter all required fields.");
+			$(".error").show();
+			return false;
+		} 
+	});
+
 	$("input[name=delete_all_students]").click(function(e) {
 		if (!confirm('Are you sure you want to delete all students?')) {
 			return false;
