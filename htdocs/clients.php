@@ -7,7 +7,7 @@
 		header("Location: index.php");
 	}
 	
-	if(isset($_POST['add_client'])) {
+	/*if(isset($_POST['add_client'])) {
 		$f_name = mysqli_real_escape_string($conn,$_POST['f_name']);
 		$l_name = mysqli_real_escape_string($conn,$_POST['l_name']);
 		$c_email = mysqli_real_escape_string($conn,$_POST['c_email']);
@@ -62,10 +62,10 @@
 			// Mail it to client
 			mail($to, $subject, $message, implode("\r\n", $headers));
 		}
-	}
+	}*/
 ?>
 <div class="main-content">
-	<h1>Clients (<a id="toggle_client_form" href="javascript:void(0)">Add Client?</a>)</h1>
+	<!--<h1>Clients (<a id="toggle_client_form" href="javascript:void(0)">Add Client?</a>)</h1>
 	<div class="survey" style="width: 300px; overflow: auto;text-align: center;">
 		<form id="new_client" action="" method="POST">
 		<div><p>Client's First Name <span class="font_red">*</span></p><input type="text" name="f_name" placeholder="First Name" /></div>
@@ -147,8 +147,9 @@
 				}
 			?>
 		</thead>
-	</table><br />
-	<p>List of all the clients signed up in this website.</p>
+	</table><br /> -->
+
+	<h3>List of all the clients signed up in this website.</h3>
 	<table class="entries">
 		<thead>
 			<tr>
@@ -210,7 +211,7 @@
 $(".error").hide();
 $(".survey").hide();
 $(document).ready(function() {
-	$("#toggle_client_form").on("click", function() {
+	/*$("#toggle_client_form").on("click", function() {
 		$(".survey").toggle();
 	});
 	$("#new_client").submit(function(e) {
@@ -219,7 +220,8 @@ $(document).ready(function() {
 			$(".error").show();
 			return false;
 		} 
-	});
+	});*/
+	
 	$(".delete").click(function(event){
 		if (confirm('Are you sure you want to delete this client?')) {
 			var s_id = event.target.id;
