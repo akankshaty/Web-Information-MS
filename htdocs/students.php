@@ -9,10 +9,62 @@
 	$sending_offer_deadline = mysqli_fetch_assoc($res)['setting_value']; // Deadline for clients to send offer letters
 	$sending_offer_deadline = date("l jS, F Y h:i:s A",$sending_offer_deadline); // Formatted deadline with correct date and time format
 ?>
-<div class="main-content">
+<?php 
+		if(isset($_POST['have_filter'])) {
+			$current_url = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+			$str_builder = "Location: students.php";
+			$count = 1;
+			foreach($_GET as $key => $value) {
+				if($key != "have_skills") {
+					if($count == 1) {
+						$str_builder .= "?".$key."=".urlencode($value);
+					} else {
+						$str_builder .= "&".$key."=".urlencode($value);
+					}
+					$count++;
+				}
+				
+			}
+			if(!empty($_POST['have_skills'])) {
+				if($str_builder != "Location: students.php") {
+					header($str_builder."&have_skills=".urlencode(implode(",",$_POST['have_skills'])));
+				} else {
+					header($str_builder."?have_skills=".urlencode(implode(",",$_POST['have_skills'])));
+				}
+			} else {
+				header($str_builder);
+			}
+		}
+		if(isset($_POST['want_filter'])) {
+			$current_url = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+			$str_builder = "Location: students.php";
+			$count = 1;
+			foreach($_GET as $key => $value) {
+				if($key != "want_skills") {
+					if($count == 1) {
+						$str_builder .= "?".$key."=".urlencode($value);
+					} else {
+						$str_builder .= "&".$key."=".urlencode($value);
+					}
+					$count++;
+				}
+				
+			}
+			if(!empty($_POST['want_skills'])) {
+				if($str_builder != "Location: students.php") {
+					header($str_builder."&want_skills=".urlencode(implode(",",$_POST['want_skills'])));
+				} else {
+					header($str_builder."?want_skills=".urlencode(implode(",",$_POST['want_skills'])));
+				}
+			} else {
+				header($str_builder);
+			}
+		}
+?>
+<?php if($_SESSION['u_role'] == "Client") {echo '<div class="main-content" style="width:100%;">';} else {echo '<div class="main-content">';} ?>
 	<h1>Students</h1>
 	<p>List of all the students signed up in this website. <?php if($_SESSION['u_role'] != "Client") {echo '<span id="download_dclearance_file" style="cursor: pointer; text-decoration: underline; color: blue;"><strong>Click Here</strong></span> to download a list of students (USC students and those students who are not enrolled as "Unpaid Intern") who do not have D-Clearance.</p>';} else {echo 'The final deadline to send offer letters to students is <span style="text-decoration: underline" class="font_bold">'.$sending_offer_deadline.'</span>';}?>
-	<form id="popup" method="POST" style="display:none;background-color: #fff;box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);border-radius:0 15px 0 0;width:auto;min-width:300px;margin:0;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); -webkit-transform: translate(-50%, -50%);">
+	<form id="popup" method="POST" style="display:none;background-color: #fff;box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);border-radius:0 15px 0 0;width:auto;min-width:300px;margin:0;position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); -webkit-transform: translate(-50%, -50%);">
 	<img src="images/red_cross_mark.png" id="close_popup" style="position:absolute;top:-3px;right:-3px;width:30px;cursor:pointer;"/>
 	<p style="margin:30px 20px 20px;">Student Name: <input type="text" style="padding:5px 10px;" id="student_name" name="student_name" value="" readonly /></p>
 	<p style="margin:20px;">Student Email: <input type="text" style="padding:5px 10px;" id="email" name="email" value="" readonly /></p>
@@ -33,7 +85,40 @@
 	<p style="margin:20px;text-align: center;"><input type="submit" name="send_offer_letter" value="Send Offer Letter" /></p>
 	</form>
 	<?php 
-
+	if($_SESSION['u_role'] == "Client") {
+		echo '<p><strong>Tip: </strong>You may filter students by using the dropdown filter below and/or by clicking on the <img src="images/filter_dropdown_button.png" style="border-radius: 4px;background-color:#660000;" /> icon on some of the table column names to filter students by column.</p>';
+	}
+	?>
+	<p>See students who: 
+	<select name="filter_student" onchange="updateFilter(this.value);">
+			<option value="all">Show All Students</option>
+			<option class="coords_and_admin" value="dclearance" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "dclearance") echo 'selected'; } ?> >Needs D-Clearance</option>
+			<option class="coords" value="survey" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "survey") echo 'selected'; } ?> >Haven't filled out survey</option>
+			<option class="coords" value="not_enrolled" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "not_enrolled") echo 'selected'; } ?> >Not enrolled in any project</option>
+			<option class="client" value="available_students" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "available_students") echo 'selected'; } ?> >Only show students who are available</option>
+			<option class="client" value="not_reviewed_list" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "not_reviewed_list") echo 'selected'; } ?> >I haven't reviewed and is available</option>
+			<option class="client" value="contacted_list" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "contacted_list") echo 'selected'; } ?> >I have contacted</option>
+			<option class="client" value="offer_letter_sent_list" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "offer_letter_sent_list") echo 'selected'; } ?> >I sent offer letters</option>
+			<?php
+				$cp_query = mysqli_query($conn,"SELECT project_name FROM client_projects WHERE client_email='".$_SESSION['u_name']."'");
+				while($cp_row = mysqli_fetch_assoc($cp_query)) {
+					if(!empty($_GET['filterBy']) && urldecode($_GET['filterBy']) == "1st_pref_".$cp_row['project_name']) {
+						echo '<option class="client" value="1st_pref_'.$cp_row['project_name'].'" selected>Students who set '.$cp_row['project_name'].' as 1st preference and are available</option>';
+					} else {
+						echo '<option class="client" value="1st_pref_'.$cp_row['project_name'].'">Students who set '.$cp_row['project_name'].' as 1st preference and are available</option>';
+					}
+					if(!empty($_GET['filterBy']) && urldecode($_GET['filterBy']) == "2nd_pref_".$cp_row['project_name']) {
+						echo '<option class="client" value="2nd_pref_'.$cp_row['project_name'].'" selected>Students who set '.$cp_row['project_name'].' as 2nd preference or higher and are available</option>';
+					} else {
+						echo '<option class="client" value="2nd_pref_'.$cp_row['project_name'].'">Students who set '.$cp_row['project_name'].' as 2nd preference or higher and are available</option>';
+					}
+					
+				}
+			?>
+	</select></p>
+	
+	<?php 
+		
 		if(isset($_POST['send_offer_letter'])) {
 			$res = mysqli_query($conn,"SELECT * FROM vacancies WHERE project_name='".$_POST['p_name']."' AND role_name='".$_POST['p_role']."'");
 			$row = mysqli_fetch_assoc($res);
@@ -161,7 +246,47 @@
 			}
 		}
 	?>
+	<?php 
+		if($_SESSION['u_role'] == 'Client') {
+			echo '<span class="filter_toggle" style="cursor: pointer; text-decoration: underline; color: blue;"><strong><p style="display:inline;">Filter students by the skills that they have</p></strong></span><span style="color:blue;cursor:pointer;" class="arrow">⯆</span><br />';
+			echo '<table class="filter_form" style="display:none;">';
+			echo '<tr>';
+			echo '<td>';
+			if(!empty($_GET['filterBy'])) {
+				echo '<form class="post_filter_form" action="students.php?filterBy='.$_GET['filterBy'].'" method="POST">';
+			} else {
+				echo '<form class="post_filter_form" action="students.php" method="POST">';
+			}
+			
+			$all_skills = mysqli_query($conn,"SELECT * FROM skills");
+			$skills_arr = array();
+			if(!empty($_GET['have_skills'])) { // If the filter is applied
+				$skills_arr = explode(",",urldecode($_GET['have_skills']));
+				while($all_s = mysqli_fetch_assoc($all_skills)) {
+					if(in_array($all_s['skill_name'],$skills_arr)) {
+						echo '<label><input type="checkbox" name="have_skills[]" value="'.$all_s['skill_name'].'" checked /> '.$all_s['skill_name'].'</label><br />';
+					} else {
+						echo '<label><input type="checkbox" name="have_skills[]" value="'.$all_s['skill_name'].'" /> '.$all_s['skill_name'].'</label><br />';
+					}
+				}
+			} else { // List out all the checkboxes as unchecked if filter is not applied
+				while($all_s = mysqli_fetch_assoc($all_skills)) {
+					echo '<label><input type="checkbox" name="have_skills[]" value="'.$all_s['skill_name'].'" /> '.$all_s['skill_name'].'</label><br />';
+				}
+			}
+			echo '</td>';
+			echo '</tr>';
+			echo '</tr>';
+			echo '<td style="text-align:center;">';
+			echo '<input type="submit" style="width:100px;height:30px;font-size:11pt;text-align:center;margin:5px;padding:0;" value="Apply Filter" name="filter" />';
+			echo '</form>';
+			echo '</td>';
+			echo '</tr>';
+			echo '</table><br />';
+		} 
+	?>
 	<form id="student_info" action="" method="POST">
+
 	<table class="entries">
 		<thead>
 			<tr>
@@ -169,219 +294,430 @@
 				<th>Email Address</th>
 				<th>Survey?</th>
 				<?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>Project</th>'; ?>
-        <?php if($_SESSION['u_role'] == "Client") echo '<th>Availability</th>'; ?>
-				<?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>D-Clearance?</th>'; ?>
-				<?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th># Units</th>'; ?>
-				<?php if($_SESSION['u_role'] == "Client") echo '<th>Marked As?</th>'; ?>
-				<?php if($_SESSION['u_role'] == "Client") echo '<th>Send Offer Letter?</th>'; ?>
+				<?php if($_SESSION['u_role'] == "Coordinator") echo '<th>Client</th>'; ?>
+        <?php 
+			if($_SESSION['u_role'] == "Client") {
+				echo '<th nowrap>Skills <br />(They Have) ';
+				if(empty($_GET['have_skills'])) {
+					echo '<img id="skills_have_dropdown" src="images/filter_dropdown_button.png" />';
+				} else {
+					echo '<img id="skills_have_dropdown" src="images/filter_dropdown_filtered_button.png" />';
+				}
+				
+				echo '<div class="drop_down have_skills" style="display:none;">';
+				$count=1;
+				$form_action_builder = '<form class="post_filter_form" action="students.php';
+				foreach($_GET as $key => $value) {
+					if($count == 1) {
+						$form_action_builder .= '?'.$key.'='.$value;
+					} else {
+						$form_action_builder .= '&'.$key.'='.$value;
+					}
+					$count++;
+				}
+				$form_action_builder .= '" method="POST">';
+				echo $form_action_builder;
+				echo '<table>';
+				echo '<tr style="background-color:white;"><td><strong>Filter by the skills they have</strong></td></tr>';
+				$s_arr  = mysqli_query($conn,"SELECT * FROM skills");
+				while($s = mysqli_fetch_assoc($s_arr)) {
+					echo '<tr style="background-color:white;">';
+						echo '<td>';
+						if(!empty($_GET['have_skills']) && (strpos(urldecode($_GET['have_skills']),$s['skill_name']) > -1)) {
+							echo '<label><input type="checkbox" name="have_skills[]" value="'.$s['skill_name'].'" checked /> '.$s['skill_name'].'</label><br />';
+						} else {
+							echo '<label><input type="checkbox" name="have_skills[]" value="'.$s['skill_name'].'" /> '.$s['skill_name'].'</label><br />';
+						}
+						echo '</td>';
+					echo '</tr>';
+				}
+				echo '<tr style="background-color:white;text-align:center;"><td><input type="submit" style="width:100px;height:30px;font-size:11pt;margin:5px;padding:0;" value="Apply Filter" name="have_filter" /></td></tr>';
+				echo '</div></table></form></th>';
+				echo '<th nowrap>Skills <br />(Want to Learn) '; 
+				if(empty($_GET['want_skills'])) {
+					echo '<img id="skills_want_dropdown" src="images/filter_dropdown_button.png" />';
+				} else {
+					echo '<img id="skills_want_dropdown" src="images/filter_dropdown_filtered_button.png" />';
+				}
+				
+				echo '<div class="drop_down want_skills" style="display:none;">';
+				$count=1;
+				$form_action_builder = '<form class="post_filter_form" action="students.php';
+				foreach($_GET as $key => $value) {
+					if($count == 1) {
+						$form_action_builder .= '?'.$key.'='.$value;
+					} else {
+						$form_action_builder .= '&'.$key.'='.$value;
+					}
+					$count++;
+				}
+				$form_action_builder .= '" method="POST">';
+				echo $form_action_builder;
+				echo '<table>';
+				echo '<tr style="background-color:white;"><td><strong>Filter by the skills they want to learn</strong></td></tr>';
+				$s_arr  = mysqli_query($conn,"SELECT * FROM skills");
+				while($s = mysqli_fetch_assoc($s_arr)) {
+					echo '<tr style="background-color:white;">';
+						echo '<td>';
+						if(!empty($_GET['want_skills']) && (strpos(urldecode($_GET['want_skills']),$s['skill_name']) > -1)) {
+							echo '<label><input type="checkbox" name="want_skills[]" value="'.$s['skill_name'].'" checked /> '.$s['skill_name'].'</label><br />';
+						} else {
+							echo '<label><input type="checkbox" name="want_skills[]" value="'.$s['skill_name'].'" /> '.$s['skill_name'].'</label><br />';
+						}
+						echo '</td>';
+					echo '</tr>';
+				}
+				echo '<tr style="background-color:white;text-align:center;"><td><input type="submit" style="width:100px;height:30px;font-size:11pt;margin:5px;padding:0;" value="Apply Filter" name="want_filter" /></td></tr>';
+				echo '</div></table></form></th>';
+				echo '<th>Availability</th>';
+			}
+			?>
+				<?php if($_SESSION['u_role'] == "Coordinator") {echo '<th>'.wordwrap("D-Clearance?",7,"<br />",true).'</th>';} else if($_SESSION['u_role'] == "Admin") {echo '<th>D-Clearance?</th>';} ?>
+				<th># Units</th>
+				<?php if($_SESSION['u_role'] == "Client") echo '<th>Marked As?</th><th>Send Offer Letter?</th>'; ?>
+				<?php 
+					if($_SESSION['u_role'] == "Client") {
+						$num_projects = mysqli_query($conn,"SELECT COUNT(*) AS n_projects FROM projects");
+						$num_projects = (int)mysqli_fetch_assoc($num_projects)['n_projects'];
+						$count = 1;
+						while($count <= $num_projects) {
+							if($count == 1) {
+								echo '<th>'.$count.'st Pref.</th>';
+							} else if($count == 2) {
+								echo '<th>'.$count.'nd Pref.</th>';
+							} else if($count == 3) {
+								echo '<th>'.$count.'rd Pref.</th>';
+							} else {
+								echo '<th>'.$count.'th Pref.</th>';
+							}
+							$count++;
+						}
+					} 
+				?>
         <?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>Active/ Withdrawn</th>'; ?>
 				<?php if($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") echo '<th>Delete?</th>'; ?>
 			</tr>
 			<?php 
 				include('auth.php');
 				if (isset($_GET['filterBy']) && $_GET['filterBy'] == "dclearance") {
-					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND d_clearance='No'");
+					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,resume_name_on_server,status FROM login_info WHERE role='Student' AND d_clearance='No'");
 				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "survey") {
-					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND survey='No'");
+					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,resume_name_on_server,status FROM login_info WHERE role='Student' AND survey='No'");
 				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "not_enrolled") {
-					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND (project_enrolled IS NULL OR project_enrolled='')");
+					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,resume_name_on_server,status FROM login_info WHERE role='Student' AND (project_enrolled IS NULL OR project_enrolled='')");
 				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "available_students")  {
-					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,status FROM login_info WHERE role='Student' AND (project_enrolled IS NULL OR project_enrolled='') AND NOT status='Withdrawn'");
+					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,resume_name_on_server,status FROM login_info WHERE role='Student' AND (project_enrolled IS NULL OR project_enrolled='') AND NOT status='Withdrawn'");
 				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "not_reviewed_list")  {
-					$students = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.username,li.survey,li.d_clearance,li.project_enrolled,li.status,rs.marked_as FROM login_info li LEFT JOIN (SELECT * FROM reviewed_students WHERE client_email='ahamilton@example.com') rs ON li.username=rs.student_email WHERE li.role='Student' AND NOT li.status='Withdrawn' AND (li.project_enrolled='' OR li.project_enrolled IS NULL) AND (rs.marked_as IS NULL OR rs.marked_as='' OR rs.marked_as='Unseen')");
+					$students = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.username,li.survey,li.n_units,li.d_clearance,li.project_enrolled,li.resume_name_on_server,li.status,rs.marked_as FROM login_info li LEFT JOIN (SELECT * FROM reviewed_students WHERE client_email='".$_SESSION['u_name']."') rs ON li.username=rs.student_email WHERE li.role='Student' AND NOT li.status='Withdrawn' AND (li.project_enrolled='' OR li.project_enrolled IS NULL) AND (rs.marked_as IS NULL OR rs.marked_as='' OR rs.marked_as='Unseen')");
 				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "contacted_list")  {
-					$students = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.username,li.survey,li.d_clearance,li.project_enrolled,li.status,rs.marked_as FROM login_info li LEFT JOIN reviewed_students rs ON li.username=rs.student_email WHERE li.role='Student' AND rs.marked_as='Contacted'");
+					$students = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.username,li.survey,li.n_units,li.d_clearance,li.project_enrolled,li.resume_name_on_server,li.status,rs.marked_as FROM login_info li LEFT JOIN reviewed_students rs ON li.username=rs.student_email WHERE li.role='Student' AND rs.marked_as='Contacted'");
 				} else if (isset($_GET['filterBy']) && $_GET['filterBy'] == "offer_letter_sent_list")  {
-					$students = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.username,li.survey,li.d_clearance,li.project_enrolled,li.status,rs.marked_as FROM login_info li LEFT JOIN reviewed_students rs ON li.username=rs.student_email WHERE li.role='Student' AND rs.marked_as='Offer Letter Sent'");
+					$students = mysqli_query($conn, "SELECT li.f_name,li.l_name,li.username,li.survey,li.n_units,li.d_clearance,li.project_enrolled,li.resume_name_on_server,li.status,rs.marked_as FROM login_info li LEFT JOIN reviewed_students rs ON li.username=rs.student_email WHERE li.role='Student' AND rs.marked_as='Offer Letter Sent'");
 				} else {
-					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,status from login_info WHERE role='Student'");
-				}
-				while($row = mysqli_fetch_assoc($students)) {
-					echo '<tr>';
-						echo '<td>';
-						echo $row['f_name'].' '.$row['l_name'];
-						echo '</td>';
-						echo '<td>';
-						echo $row['username'];
-						echo '</td>';
-						echo '<td>';
-						if ($row['survey'] == "No") {
-							echo "Not Filled";
-						} else {
-							echo '<a href="survey.php?student='.$row['username'].'" target="_blank">View</a>';
+					$students = mysqli_query($conn, "SELECT f_name,l_name,username,survey,n_units,d_clearance,project_enrolled,resume_name_on_server,status from login_info WHERE role='Student'");
+					if(($_SESSION['u_role'] == "Client") && !empty($_GET['filterBy'])) {
+						$cp_query = mysqli_query($conn,"SELECT project_name FROM client_projects WHERE client_email='".$_SESSION['u_name']."'");
+						while($cp_row = mysqli_fetch_assoc($cp_query)) {
+							if (urldecode($_GET['filterBy']) == "1st_pref_".$cp_row['project_name']) {
+								$students = mysqli_query($conn,"SELECT li.f_name,li.l_name,li.username,li.survey,li.n_units,li.d_clearance,li.project_enrolled,li.resume_name_on_server,li.status FROM login_info li LEFT JOIN project_preferences pp ON li.username=pp.email WHERE pp.preference_order='1' AND pp.project_name='".$cp_row['project_name']."' AND li.role='Student' AND (li.project_enrolled IS NULL OR li.project_enrolled='') AND NOT li.status='Withdrawn'");
+							} else if (urldecode($_GET['filterBy']) == "2nd_pref_".$cp_row['project_name']) {
+								$students = mysqli_query($conn,"SELECT li.f_name,li.l_name,li.username,li.survey,li.n_units,li.d_clearance,li.project_enrolled,li.resume_name_on_server,li.status FROM login_info li LEFT JOIN project_preferences pp ON li.username=pp.email WHERE (pp.preference_order='1' OR pp.preference_order='2') AND pp.project_name='".$cp_row['project_name']."' AND li.role='Student' AND (li.project_enrolled IS NULL OR li.project_enrolled='') AND NOT li.status='Withdrawn'");
+							}
 						}
-						echo '</td>';
-						
-						
-						echo '<td>';
-						if (($_SESSION['u_role'] == "Admin")) {		
-							$availability = empty($row['project_enrolled'])? '<p class="font_red">Not Enrolled</p>' : $row['project_enrolled'];
-							echo $availability;
-						} else if ($_SESSION['u_role'] == "Coordinator") {
-							if(empty($row['project_enrolled'])) {
-								echo '<select name="enroll_project" class="enroll_project-*'.$row['username'].'" style="padding:5px 10px;margin:25px 5px;border-radius:5px;">';
-								echo '<option value="">Not Enrolled</option>';
-								$res = mysqli_query($conn,"SELECT project_name FROM projects p WHERE NOT EXISTS (SELECT cp.project_name FROM client_projects cp WHERE p.project_name = cp.project_name)");
-								while($projects_of_coordinators = mysqli_fetch_assoc($res)) {
-									echo '<option value="'.$projects_of_coordinators['project_name'].'">'.$projects_of_coordinators['project_name'].'</option>';
-								}
-								echo '</select>';
-								echo '<img src="images/green_check_mark.png" class="enroll_project-*'.$row['username'].'" style="display:none;width:12px;margin:4px 0 0 4px;"/>';
+					}
+				}
+				$no_rows = true; // Check whether at least one row is displayed
+				while($row = mysqli_fetch_assoc($students)) {
+					$skill_have_arr = array();
+					$skill_want_arr = array();
+					if($_SESSION['u_role'] == "Client") {
+						$sk = mysqli_query($conn,"SELECT * FROM student_skills WHERE email='".$row['username']."' AND skill_type='Have Experience'");
+						while($sk_row = mysqli_fetch_assoc($sk)) {
+							$skill_have_arr[] = $sk_row['skill_name'];
+						}
+						$sk = mysqli_query($conn,"SELECT * FROM student_skills WHERE email='".$row['username']."' AND skill_type='Want to Learn'");
+						while($sk_row = mysqli_fetch_assoc($sk)) {
+							$skill_want_arr[] = $sk_row['skill_name'];
+						}
+					}
+
+
+					if(!empty($_GET['have_skills'])) {
+						$search_skills = explode(",",urldecode($_GET['have_skills']));
+						$has_required_skill = !empty(array_intersect($skill_have_arr,$search_skills)); // Student has at least one skill client searches for (using filter).
+					} else {
+						$has_required_skill = true;
+					}
+					if(!empty($_GET['want_skills'])) {
+						$search_skills = explode(",",urldecode($_GET['want_skills']));
+						$want_required_skill = !empty(array_intersect($skill_want_arr,$search_skills)); // Student want to learn at least one skill client searches for (using filter).
+					} else {
+						$want_required_skill = true;
+					}
+					if($has_required_skill && $want_required_skill) {
+						$no_rows = false;
+						echo '<tr>';
+							echo '<td>';
+							echo $row['f_name'].' '.$row['l_name'];
+							echo '</td>';
+							echo '<td>';
+							echo $row['username'];
+							echo '</td>';
+							echo '<td nowrap>';
+							if ($row['survey'] == "No") {
+								echo "Not Filled";
 							} else {
+								if($_SESSION['u_role'] != "Client") {
+									echo '<a href="survey.php?student='.$row['username'].'" target="_blank">View</a>';
+								} else {
+									echo '<a href="survey.php?student='.$row['username'].'" target="_blank">View Form</a><br />';
+									echo '<a href="'.$row['resume_name_on_server'].'" target="_blank">View Resume</a>';
+								}
+							}
+							echo '</td>';
+							
+							if($_SESSION['u_role'] == "Client") {
+								echo '<td>';
+								if(!empty($skill_have_arr)) {
+									echo implode(", ",$skill_have_arr);
+								} else {
+									echo "-";
+								}
+								echo '</td>';
+								echo '<td>';
+								if(!empty($skill_want_arr)) {
+									echo implode(", ",$skill_want_arr);
+								} else {
+									echo "-";
+								}
+								echo '</td>';
+							}
+							
+							echo '<td>';
+							if (($_SESSION['u_role'] == "Admin")) {		
 								$availability = empty($row['project_enrolled'])? '<p class="font_red">Not Enrolled</p>' : $row['project_enrolled'];
 								echo $availability;
-							}
-						} else if ($_SESSION['u_role'] == "Client") {
-							$availability = (empty($row['project_enrolled']) && ($row['status'] != "Withdrawn"))? '<p class="font_bold font_green">Yes</p>' : '<p class="font_bold font_red">No</p>';
-							echo $availability;
-						}
-						echo '</td>';
-						
-						
-						if($_SESSION['u_role'] == "Client") {
-						echo '<td>';
-							$res = mysqli_query($conn,"SELECT * FROM reviewed_students WHERE client_email='".$_SESSION['u_name']."' AND student_email='".$row['username']."'");
-							$disabled = '';
-							if((mysqli_num_rows($res) > 0)) {
-								$marked_as = mysqli_fetch_assoc($res)['marked_as'];
-								$marked_as = empty($marked_as)? 'Unseen' : $marked_as;
-							} else if(mysqli_num_rows($res) < 1) {
-								$marked_as = 'Unseen';
-							}
-							if($marked_as == "Offer Letter Sent") {
-								$disabled = 'disabled';
-							}
-							echo '<select name="mark" class="mark-*'.$row['username'].'" '.$disabled.'>';
-								if($marked_as == "Unseen") {
-									echo '<option value="unseen" selected>Unseen</option>';
-									echo '<option value="seen">Seen</option>';
-									echo '<option value="contacted">Contacted</option>';
-								} else if ($marked_as == "Seen") {
-									echo '<option value="unseen">Unseen</option>';
-									echo '<option value="seen" selected>Seen</option>';
-									echo '<option value="contacted">Contacted</option>';
-								} else if ($marked_as == "Contacted") {
-									echo '<option value="unseen">Unseen</option>';
-									echo '<option value="seen">Seen</option>';
-									echo '<option value="contacted" selected>Contacted</option>';
-								} else if ($marked_as == "Offer Letter Sent") {
-									echo '<option value="unseen">Unseen</option>';
-									echo '<option value="seen">Seen</option>';
-									echo '<option value="contacted">Contacted</option>';
-									echo '<option value="offer_letter_sent" selected>Offer Letter Sent</option>';
+							} else if ($_SESSION['u_role'] == "Coordinator") {
+								if(empty($row['project_enrolled'])) {
+									$res = mysqli_query($conn,"SELECT project_name FROM projects p WHERE NOT EXISTS (SELECT cp.project_name FROM client_projects cp WHERE p.project_name = cp.project_name)");
+									if(mysqli_num_rows($res) > 0) {
+										echo '<select name="enroll_project" class="enroll_project-*'.$row['username'].'" style="padding:5px 10px;margin:25px 5px;border-radius:5px;">';
+										echo '<option value="">Not Enrolled</option>';
+									} else {
+										echo '<p class="font_red">Not Enrolled</p>';
+									}
+									while($projects_of_coordinators = mysqli_fetch_assoc($res)) {
+										echo '<option value="'.$projects_of_coordinators['project_name'].'">'.$projects_of_coordinators['project_name'].'</option>';
+									}
+									echo '</select>';
+									echo '<img src="images/green_check_mark.png" class="enroll_project-*'.$row['username'].'" style="display:none;width:12px;margin:4px 0 0 4px;"/>';
 								} else {
-									echo '<option value="unseen" selected>Unseen</option>';
-									echo '<option value="seen">Seen</option>';
-									echo '<option value="contacted">Contacted</option>';
-								}	
-									
-							echo '</select>';
-							echo '<img src="images/green_check_mark.png" class="mark-*'.$row['username'].'" style="display:none;width:12px;margin:4px 0 0 4px;"/>';
-						echo '</td>';
-
-              if ($marked_as == "Offer Letter Sent"){
-                echo '<td>';
-								echo '<img src="images/offer_letter_sent.png" title="Offer letter has been sent to this student!" style="width:30px;filter:grayscale(100%);" />';
-								echo '</td>';	
-              }
-							else if (empty($row['project_enrolled']) && ($row['status'] != "Withdrawn")) {
+									$availability = empty($row['project_enrolled'])? '<p class="font_red">Not Enrolled</p>' : $row['project_enrolled'];
+									echo $availability;
+								}
+							} else if ($_SESSION['u_role'] == "Client") {
+								$availability = (empty($row['project_enrolled']) && ($row['status'] != "Withdrawn"))? '<p class="font_bold font_green">Yes</p>' : '<p class="font_bold font_red">No</p>';
+								echo $availability;
+							}
+							echo '</td>';
+							if ($_SESSION['u_role'] == "Coordinator") {
 								echo '<td>';
-								echo '<img src="images/offer_letter.png" id="offer-*'.str_replace(' ','_',$row['f_name']).'-*'.str_replace(' ','_',$row['l_name']).'-*'.$row['username'].'" class="offer" style="width: 30px;cursor: pointer;" />';
+								if(!empty($row['project_enrolled'])) {
+									$res1 = mysqli_query($conn,"SELECT li.f_name,li.l_name FROM (SELECT * FROM client_projects WHERE project_name='".$row['project_enrolled']."') AS cp LEFT JOIN login_info li ON cp.client_email=li.username WHERE f_name IS NOT NULL AND l_name IS NOT NULL");
+									$client_arr = array();
+									while($res1_row = mysqli_fetch_assoc($res1)) {
+										$client_arr[] = $res1_row['f_name'];
+									}
+									if(!empty($client_arr)) {
+										echo implode(", ",$client_arr);
+									} else {
+										echo "DR Coordinator";
+									}									
+								} else {
+									echo "-";
+								}
+
 								echo '</td>';
-							} else if (!empty($row['project_enrolled'])) {
-								echo '<td>';
-								echo '<img src="images/offer_letter.png" title="Student is already enrolled in a project!" style="width:30px;filter:grayscale(100%);" />';
-								echo '</td>';								
-							} else {
-								echo '<td>';
-								echo '<img src="images/offer_letter.png" title="Student has withdrawn from this course!" style="width:30px;filter:grayscale(100%);" />';
-								echo '</td>';										
 							}
-						}
-						if ($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") {
+							
+							if($_SESSION['u_role'] == "Client") {
 							echo '<td>';
-							echo '<label class="switch">';
-								if ($row['d_clearance'] == "Yes" || $row['n_units'] == "intern") {
-									echo '<input type="checkbox" id="'.$row['username'].'" checked>';
-								} //elseif ($row['n_units'] == "intern") {
-									//echo '<input type="checkbox" id="'.$row['username'].'" style="display:none;">';
-								//} 
-								else {
-									echo '<input type="checkbox" id="'.$row['username'].'">';
-								}
-								echo '<span class="slider round"></span>';
-							echo '</label>';
+							if ($row['n_units'] == "1") {
+								echo '1 unit';
+							} else if ($row['n_units'] == "2") {
+								echo '2 units';
+							} else if ($row['n_units'] == "3") {
+								echo '3 units';
+							} else if ($row['n_units'] == "4+") {
+								echo '4+ units';
+							} else if ($row['n_units'] == "intern") {
+								echo 'Unpaid Intern';
+							} else {
+								echo '-';
+							}
 							echo '</td>';
 							echo '<td>';
-							echo '<select name="units" class="units-*'.$row['username'].'" style="padding:5px 10px;margin:25px 5px;border-radius:5px;" >';
-								if($row['n_units'] == "1") {
-									echo '<option value="select">Select Units</option>';
-									echo '<option value="1" selected>1 unit</option>';
-									echo '<option value="2">2 units</option>';
-									echo '<option value="3">3 units</option>';
-									echo '<option value="4+">4+ units</option>';
-									echo '<option value="intern">Unpaid Intern</option>';
-								} else if($row['n_units'] == "2") {
-									echo '<option value="select">Select Units</option>';
-									echo '<option value="1">1 unit</option>';
-									echo '<option value="2" selected>2 units</option>';
-									echo '<option value="3">3 units</option>';
-									echo '<option value="4+">4+ units</option>';
-									echo '<option value="intern">Unpaid Intern</option>';
-								} else if($row['n_units'] == "3") {
-									echo '<option value="select">Select Units</option>';
-									echo '<option value="1">1 unit</option>';
-									echo '<option value="2">2 units</option>';
-									echo '<option value="3" selected>3 units</option>';
-									echo '<option value="4+">4+ units</option>';
-									echo '<option value="intern">Unpaid Intern</option>';
-								} else if($row['n_units'] == "4+") {
-									echo '<option value="select">Select Units</option>';
-									echo '<option value="1">1 unit</option>';
-									echo '<option value="2">2 units</option>';
-									echo '<option value="3">3 units</option>';
-									echo '<option value="4+" selected>4+ units</option>';
-									echo '<option value="intern">Unpaid Intern</option>';
-								} else if($row['n_units'] == "intern") {
-									echo '<option value="select">Select Units</option>';
-									echo '<option value="1">1 unit</option>';
-									echo '<option value="2">2 units</option>';
-									echo '<option value="3">3 units</option>';
-									echo '<option value="4+">4+ units</option>';
-									echo '<option value="intern" selected>Unpaid Intern</option>';
-								} else {
-									echo '<option value="select">Select Units</option>';
-									echo '<option value="1">1 unit</option>';
-									echo '<option value="2">2 units</option>';
-									echo '<option value="3">3 units</option>';
-									echo '<option value="4+">4+ units</option>';
-									echo '<option value="intern">Unpaid Intern</option>';
+								$res = mysqli_query($conn,"SELECT * FROM reviewed_students WHERE client_email='".$_SESSION['u_name']."' AND student_email='".$row['username']."'");
+								$disabled = '';
+								if((mysqli_num_rows($res) > 0)) {
+									$marked_as = mysqli_fetch_assoc($res)['marked_as'];
+									$marked_as = empty($marked_as)? 'Unseen' : $marked_as;
+								} else if(mysqli_num_rows($res) < 1) {
+									$marked_as = 'Unseen';
 								}
-							echo '</select>';
-							echo '<img src="images/green_check_mark.png" class="units-*'.$row['username'].'" style="display:none;width:15px;margin:14px 0 0 4px;"/>';
-							echo '</td>';
-							echo '<td>';
-							echo '<select name="active" class="active-*'.$row['username'].'" style="padding:5px 10px;margin:25px 5px;border-radius:5px;" >';
-								if($row['status'] == "Withdrawn") {
-									echo '<option value="active">Active</option>';
-									echo '<option value="withdrawn" selected>Withdrawn</option>';
-								} else {
-									echo '<option value="active" selected>Active</option>';
-									echo '<option value="withdrawn">Withdrawn</option>';
-								}	
-							echo '</select>';
-							echo '<img src="images/green_check_mark.png" class="active-*'.$row['username'].'" style="display:none;width:15px;margin:14px 0 0 4px;"/>';
+								if($marked_as == "Offer Letter Sent") {
+									$disabled = 'disabled';
+								}
+								echo '<select name="mark" class="mark-*'.$row['username'].'" '.$disabled.'>';
+									if($marked_as == "Unseen") {
+										echo '<option value="unseen" selected>Unseen</option>';
+										echo '<option value="seen">Seen</option>';
+										echo '<option value="contacted">Contacted</option>';
+									} else if ($marked_as == "Seen") {
+										echo '<option value="unseen">Unseen</option>';
+										echo '<option value="seen" selected>Seen</option>';
+										echo '<option value="contacted">Contacted</option>';
+									} else if ($marked_as == "Contacted") {
+										echo '<option value="unseen">Unseen</option>';
+										echo '<option value="seen">Seen</option>';
+										echo '<option value="contacted" selected>Contacted</option>';
+									} else if ($marked_as == "Offer Letter Sent") {
+										echo '<option value="unseen">Unseen</option>';
+										echo '<option value="seen">Seen</option>';
+										echo '<option value="contacted">Contacted</option>';
+										echo '<option value="offer_letter_sent" selected>Offer Letter Sent</option>';
+									} else {
+										echo '<option value="unseen" selected>Unseen</option>';
+										echo '<option value="seen">Seen</option>';
+										echo '<option value="contacted">Contacted</option>';
+									}	
+										
+								echo '</select>';
+								echo '<img src="images/green_check_mark.png" class="mark-*'.$row['username'].'" style="display:none;width:12px;margin:4px 0 0 4px;"/>';
 							echo '</td>';
 
-							echo '<td>';
-							echo '<img src="images/delete_cross_mark.png" id="delete-'.$row['username'].'" class="delete" style="width:30px;cursor:pointer;" />';
-							echo '</td>';
-						}
-					echo '</tr>';
+								if ($marked_as == "Offer Letter Sent"){
+									echo '<td>';
+									echo '<img src="images/offer_letter_sent.png" title="Offer letter has been sent to this student!" style="width:30px;filter:grayscale(100%);" />';
+									echo '</td>';	
+								} else if (empty($row['project_enrolled']) && ($row['status'] != "Withdrawn")) {
+									echo '<td>';
+									echo '<img src="images/offer_letter.png" id="offer-*'.str_replace(' ','_',$row['f_name']).'-*'.str_replace(' ','_',$row['l_name']).'-*'.$row['username'].'" class="offer" style="width: 30px;cursor: pointer;" />';
+									echo '</td>';
+								} else if (!empty($row['project_enrolled'])) {
+									echo '<td>';
+									echo '<img src="images/offer_letter.png" title="Student is already enrolled in a project!" style="width:30px;filter:grayscale(100%);" />';
+									echo '</td>';								
+								} else {
+									echo '<td>';
+									echo '<img src="images/offer_letter.png" title="Student has withdrawn from this course!" style="width:30px;filter:grayscale(100%);" />';
+									echo '</td>';										
+								}
+								$pref_num = mysqli_query($conn,"SELECT project_name FROM project_preferences WHERE email='".$row['username']."'");
+								if(mysqli_num_rows($pref_num) < 1) {
+									$num_projects = mysqli_query($conn,"SELECT COUNT(*) AS n_projects FROM projects");
+									$num_projects = (int)mysqli_fetch_assoc($num_projects)['n_projects'];
+									$count = 1;
+									while($count <= $num_projects) {
+										echo '<td>-</td>';
+										$count++;
+									}
+								} else {
+									while($pref_row = mysqli_fetch_assoc($pref_num)) {
+										echo '<td>';
+										if(!empty($pref_row['project_name'])) {
+											echo $pref_row['project_name'];
+										} else {
+											echo '-';
+										}
+										echo '</td>';
+									}
+								}
+
+							}
+							if ($_SESSION['u_role'] == "Coordinator" OR $_SESSION['u_role'] == "Admin") {
+								echo '<td>';
+								echo '<label class="switch">';
+									if ($row['d_clearance'] == "Yes") {
+										echo '<input type="checkbox" id="'.$row['username'].'" checked>';
+									} else {
+										echo '<input type="checkbox" id="'.$row['username'].'">';
+									}
+									echo '<span class="slider round"></span>';
+								echo '</label>';
+								echo '</td>';
+								echo '<td>';
+								echo '<select name="units" class="units-*'.$row['username'].'" style="padding:5px 10px;margin:25px 5px;border-radius:5px;" >';
+									if($row['n_units'] == "1") {
+										echo '<option value="select">Select Units</option>';
+										echo '<option value="1" selected>1 unit</option>';
+										echo '<option value="2">2 units</option>';
+										echo '<option value="3">3 units</option>';
+										echo '<option value="4+">4+ units</option>';
+										echo '<option value="intern">Unpaid Intern</option>';
+									} else if($row['n_units'] == "2") {
+										echo '<option value="select">Select Units</option>';
+										echo '<option value="1">1 unit</option>';
+										echo '<option value="2" selected>2 units</option>';
+										echo '<option value="3">3 units</option>';
+										echo '<option value="4+">4+ units</option>';
+										echo '<option value="intern">Unpaid Intern</option>';
+									} else if($row['n_units'] == "3") {
+										echo '<option value="select">Select Units</option>';
+										echo '<option value="1">1 unit</option>';
+										echo '<option value="2">2 units</option>';
+										echo '<option value="3" selected>3 units</option>';
+										echo '<option value="4+">4+ units</option>';
+										echo '<option value="intern">Unpaid Intern</option>';
+									} else if($row['n_units'] == "4+") {
+										echo '<option value="select">Select Units</option>';
+										echo '<option value="1">1 unit</option>';
+										echo '<option value="2">2 units</option>';
+										echo '<option value="3">3 units</option>';
+										echo '<option value="4+" selected>4+ units</option>';
+										echo '<option value="intern">Unpaid Intern</option>';
+									} else if($row['n_units'] == "intern") {
+										echo '<option value="select">Select Units</option>';
+										echo '<option value="1">1 unit</option>';
+										echo '<option value="2">2 units</option>';
+										echo '<option value="3">3 units</option>';
+										echo '<option value="4+">4+ units</option>';
+										echo '<option value="intern" selected>Unpaid Intern</option>';
+									} else {
+										echo '<option value="select">Select Units</option>';
+										echo '<option value="1">1 unit</option>';
+										echo '<option value="2">2 units</option>';
+										echo '<option value="3">3 units</option>';
+										echo '<option value="4+">4+ units</option>';
+										echo '<option value="intern">Unpaid Intern</option>';
+									}
+								echo '</select>';
+								echo '<img src="images/green_check_mark.png" class="units-*'.$row['username'].'" style="display:none;width:15px;margin:14px 0 0 4px;"/>';
+								echo '</td>';
+								echo '<td>';
+								echo '<select name="active" class="active-*'.$row['username'].'" style="padding:5px 10px;margin:25px 5px;border-radius:5px;" >';
+									if($row['status'] == "Withdrawn") {
+										echo '<option value="active">Active</option>';
+										echo '<option value="withdrawn" selected>Withdrawn</option>';
+									} else {
+										echo '<option value="active" selected>Active</option>';
+										echo '<option value="withdrawn">Withdrawn</option>';
+									}	
+								echo '</select>';
+								echo '<img src="images/green_check_mark.png" class="active-*'.$row['username'].'" style="display:none;width:15px;margin:14px 0 0 4px;"/>';
+								echo '</td>';
+
+								echo '<td>';
+								echo '<img src="images/delete_cross_mark.png" id="delete-'.$row['username'].'" class="delete" style="width:30px;cursor:pointer;" />';
+								echo '</td>';
+							}
+						echo '</tr>';						
+					}
+
 				}
-				if (mysqli_num_rows($students) < 1) {
+				if ($no_rows) {
 					echo '<tr>';
-						echo '<td colspan="10">';
+						echo '<td colspan="30">';
 						echo 'No results to show.';
 						echo '</td>';
 					echo '</tr>';
@@ -389,18 +725,6 @@
 			?>
 		</thead>
 	</table>
-	<p>See students <?php if($_SESSION['u_role'] == 'Client') {echo 'whom';} else {echo 'who';} ?>: 
-	<select name="filter_student" onchange="updateFilter(this.value);">
-			<option value="all">Show All Students</option>
-			<option class="coords_and_admin" value="dclearance" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "dclearance") echo 'selected'; } ?> >Needs D-Clearance</option>
-			<option class="coords" value="survey" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "survey") echo 'selected'; } ?> >Haven't filled out survey</option>
-			<option class="coords" value="not_enrolled" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "not_enrolled") echo 'selected'; } ?> >Not enrolled in any project</option>
-			<option class="client" value="available_students" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "available_students") echo 'selected'; } ?> >Only show students who are available</option>
-			<option class="client" value="not_reviewed_list" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "not_reviewed_list") echo 'selected'; } ?> >I haven't reviewed and is available</option>
-			<option class="client" value="contacted_list" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "contacted_list") echo 'selected'; } ?> >I have contacted</option>
-			<option class="client" value="offer_letter_sent_list" <?php if (isset($_GET['filterBy'])) {if ($_GET['filterBy'] == "offer_letter_sent_list") echo 'selected'; } ?> >I sent offer letters</option>
-	
-	</select></p>
 	</form>
 	<br />
 	<?php 
@@ -466,7 +790,7 @@
 				echo '</tr>';
 		} else {
 			echo '<tr>';
-				echo '<td colspan="10">';
+				echo '<td colspan="30">';
 				echo 'No results to show.';
 				echo '</td>';
 			echo '</tr>';
@@ -477,24 +801,68 @@
 	}
 			?>
 </div><br />
+</div>
 <script>
 <?php 
 	echo 'var role ="'.$_SESSION['u_role'].'";';
+	if(!empty($_GET['have_skills'])) {
+		echo 'var show_filter = true;';
+	} else {
+		echo 'var show_filter = false;';
+	}
 ?>
 if (role != "Coordinator") {
-	$(".coords").hide();
+	$(".coords").remove();
 } 
 if (role != "Client") {
-	$(".client").hide();
+	$(".client").remove();
 } 
 if (role != "Admin") {
-	$(".admin").hide();
+	$(".admin").remove();
 } 
 if ((role != "Admin") && role != "Coordinator") {
-	$(".coords_and_admin").hide();
+	$(".coords_and_admin").remove();
 }
+if(show_filter) {
+	$(".filter_form").show();
+}
+$(".filter_toggle").click(function(e){
+	$(".filter_form").toggle();
+	if($(".arrow").html() == "⯆") {
+		$(".arrow").html("⯅");
+	} else {
+		$(".arrow").html("⯆");
+	}
+});
+
+$("#post_filter_form").submit(function(e){
+	$.ajax({
+		url: "students.php",
+		type: "POST",
+		data: { "filter": true },
+		success: function(response){
+			
+		},
+		error: function(){
+		}
+	});
+});
 $("#popup").hide();
 $(document).ready(function(){
+	$("#skills_have_dropdown").css("cursor","pointer");
+	$("#skills_have_dropdown").click(function(e){
+		$(".have_skills").toggle();
+		if($(".have_skills").is(":visible")) {
+			$(".want_skills").hide();
+		}
+	});
+	$("#skills_want_dropdown").css("cursor","pointer");
+	$("#skills_want_dropdown").click(function(e){
+		$(".want_skills").toggle();
+		if($(".want_skills").is(":visible")) {
+			$(".have_skills").hide();
+		}
+	});
 	$("input[type=checkbox]").click(function(event){
 		var s_id = event.target.id;
 		$.ajax({
@@ -535,6 +903,7 @@ $(document).ready(function(){
 	});
 	$("input[name=send_offer_letter]").click(function(event){
 		if (confirm('Are you sure you want to send offer letter to this student?')) {
+			$("#popup").hide();
 			var s_id = event.target.id;
 			var email = $("input[id=email]").val();
 			$.ajax({
@@ -617,28 +986,6 @@ $(document).ready(function(){
 			
 		});
 		$("img[class="+$.escapeSelector($(this).attr("class"))+"]").show();
-
-		//var sel_id = e.target.class.split("*")[1];
-		//var sel_val = e.target.value;
-
-		/*$("input[type=checkbox]").each(function() {
-			if($(this).attr(id) == student_email) {
-				if(units_value == 'intern') {
-					// TODO: set the dclearance toggle switch to true (green)
-					$(this).prop('checked',true);
-				} else {
-					// TODO: set the toggle switch to false (red)
-					$(this).prop('checked',false);
-				}
-			}
-		});*/
-		/*var id = "input[type=checkbox] #" + sel_id;
-		if(sel_val == "intern") {
-			$(id).prop('checked',true);
-		} else {
-			$(id).prop('checked',false);
-		}*/
-		location.reload();
 	});
 	$("#clear_list").click(function(e) {
 		if (confirm('Are you sure you want to clear the list of students who changed the # of units? This action cannot be undone.')) {
@@ -687,28 +1034,75 @@ $(document).ready(function(){
 });
 function updateFilter(value) {
 	if (value == "dclearance") {
-		window.location.replace("students.php?filterBy=dclearance");
+		if((window.location.href.indexOf("have_skills=") == -1) || (window.location.href.indexOf("?") == -1)) {
+			window.location.replace("students.php?filterBy=dclearance");
+		} else {
+			window.location.replace(window.location.href+"&filterBy=dclearance");
+		}
 		$("option[value=dclearance]").attr('selected', true);
 	} else if (value == "survey") {
-		window.location.replace("students.php?filterBy=survey");
+		if((window.location.href.indexOf("have_skills=") == -1) || (window.location.href.indexOf("?") == -1)) {
+			window.location.replace("students.php?filterBy=survey");
+		} else {
+			window.location.replace(window.location.href+"&filterBy=survey");
+		}
+		
 		$("option[value=survey]").attr('selected', true);
 	} else if (value == "not_enrolled") {
-		window.location.replace("students.php?filterBy=not_enrolled");
+		if((window.location.href.indexOf("have_skills=") == -1) || (window.location.href.indexOf("?") == -1)) {
+			window.location.replace("students.php?filterBy=not_enrolled");
+		} else {
+			window.location.replace(window.location.href+"&filterBy=not_enrolled");
+		}
 		$("option[value=not_enrolled]").attr('selected', true);
 	} else if (value == "available_students") {
-		window.location.replace("students.php?filterBy=available_students");
+		if((window.location.href.indexOf("have_skills=") == -1) || (window.location.href.indexOf("?") == -1)) {
+			window.location.replace("students.php?filterBy=available_students");
+		} else {
+			window.location.replace(window.location.href+"&filterBy=available_students");
+		}
 		$("option[value=available_students]").attr('selected', true);
 	} else if (value == "not_reviewed_list") {
-		window.location.replace("students.php?filterBy=not_reviewed_list");
+		if((window.location.href.indexOf("have_skills=") == -1) || (window.location.href.indexOf("?") == -1)) {
+			window.location.replace("students.php?filterBy=not_reviewed_list");
+		} else {
+			window.location.replace(window.location.href+"&filterBy=not_reviewed_list");
+		}
 		$("option[value=not_reviewed_list]").attr('selected', true);
 	} else if (value == "contacted_list") {
-		window.location.replace("students.php?filterBy=contacted_list");
+		if((window.location.href.indexOf("have_skills=") == -1) || (window.location.href.indexOf("?") == -1)) {
+			window.location.replace("students.php?filterBy=contacted_list");
+		} else {
+			window.location.replace(window.location.href+"&filterBy=contacted_list");
+		}
 		$("option[value=contacted_list]").attr('selected', true);
 	} else if (value == "offer_letter_sent_list") {
-		window.location.replace("students.php?filterBy=offer_letter_sent_list");
+		if((window.location.href.indexOf("have_skills=") == -1) || (window.location.href.indexOf("?") == -1)) {
+			window.location.replace("students.php?filterBy=offer_letter_sent_list");
+		} else {
+			window.location.replace(window.location.href+"&filterBy=offer_letter_sent_list");
+		}
 		$("option[value=contacted_list]").attr('selected', true);
+	} else if (value.startsWith("1st_pref")) {
+		if((window.location.href.indexOf("have_skills=") == -1) || (window.location.href.indexOf("?") == -1)) {
+			window.location.replace("students.php?filterBy="+encodeURI(value));
+		} else {
+			window.location.replace(window.location.href+"&filterBy="+encodeURI(value));
+		}
+		$("option[value="+value+"]").attr('selected', true);
+	} else if (value.startsWith("2nd_pref")) {
+		if((window.location.href.indexOf("have_skills=") == -1) || (window.location.href.indexOf("?") == -1)) {
+			window.location.replace("students.php?filterBy="+encodeURI(value));
+		} else {
+			window.location.replace(window.location.href+"&filterBy="+encodeURI(value));
+		}
+		$("option[value="+value+"]").attr('selected', true);
 	} else {
-		window.location.replace("students.php");
+		if((window.location.href.indexOf("have_skills=") == -1) || (window.location.href.indexOf("?") == -1)) {
+			window.location.replace("students.php");
+		} else {
+			window.location.replace(window.location.href+"&filterBy=all");
+		}
 		$("option[value=all]").attr('selected', true);		
 	}
 }
